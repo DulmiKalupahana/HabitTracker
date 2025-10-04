@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- Core Colors -->
+    <color name="colorPrimary">#EEDBFB</color>   <!-- pastel purple bg (main background) -->
+    <color name="colorSecondary">#FFFFFF</color> <!-- cards / sections -->
+    <color name="colorAccent">#8651D5</color>    <!-- accent (buttons, highlights) -->
+
+    <!-- Text Colors -->
+    <color name="textPrimary">#232336</color>    <!-- dark readable text -->
+    <color name="textSecondary">#505050</color>  <!-- lighter subtitle text -->
+    <color name="textAccent">#8A3FFC</color>     <!-- highlight / link text -->
+
+    <!-- Border / Line Colors -->
+    <color name="lineSoft">#E4E4FF</color>
+
+    <color name="taskGreen">#C8E6C9</color>
+    <color name="taskYellow">#FFF59D</color>
+    <color name="taskOrange">#FFCC80</color>
+    <color name="taskPink">#F8BBD0</color>
+    <color name="taskBlue">#BBDEFB</color>
+    <color name="purple_200">#BB86FC</color>
+
+
+</resources>

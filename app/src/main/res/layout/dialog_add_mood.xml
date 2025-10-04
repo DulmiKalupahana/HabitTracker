@@ -1,0 +1,45 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:orientation="vertical"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:padding="24dp"
+    android:background="@drawable/dialog_bg">
+
+    <TextView
+        android:text="How is your mood today?"
+        android:textSize="18sp"
+        android:textStyle="bold"
+        android:textColor="@color/textPrimary"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:paddingBottom="12dp" />
+
+    <!-- Emoji Mood Grid -->
+    <GridLayout
+        android:id="@+id/moodEmojiGrid"
+        android:columnCount="3"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:alignmentMode="alignMargins"
+        android:rowCount="2"
+        android:useDefaultMargins="true">
+
+        <!-- example emojis, added dynamically in code if you like -->
+        <TextView
+            android:text="😎"
+            android:textSize="32sp"
+            android:gravity="center"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"/>
+    </GridLayout>
+
+    <Button
+        android:id="@+id/btnSaveMood"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="20dp"
+        android:text="I feel great!"
+        android:backgroundTint="@color/colorAccent"
+        android:textColor="@android:color/white" />
+</LinearLayout>

@@ -1,0 +1,86 @@
+<resources>
+    <!-- App Info -->
+    <string name="app_name">LifeTrack</string>
+
+    <!-- Bottom Navigation -->
+    <string name="nav_home">Home</string>
+    <string name="nav_mood">Mood Stat</string>
+    <string name="nav_report">Report</string>
+    <string name="nav_habits">My Habits</string>
+    <string name="nav_account">Account</string>
+
+    <!-- Mood Fragment -->
+    <string name="mood_journal_title">Mood Journal</string>
+    <string name="select_date_text">Select a date to view or add mood</string>
+    <string name="add_mood">Add Mood</string>
+    <string name="selected_date">Selected: %1$s</string>
+    <string name="no_mood_recorded">No mood recorded for %1$s</string>
+    <string name="mood_display">Mood: %1$s\nNote: %2$s</string>
+    <string name="mood_stat">Mood Stat</string>
+    <string name="prev_month">Previous Month</string>
+    <string name="next_month">Next Month</string>
+    <string name="default_month">December 2024</string>
+    <string name="select_mood_prompt">Select a date to add or edit mood</string>
+    <string name="pick_emoji">Pick an emoji:</string>
+    <string name="note_optional">Note (optional)</string>
+    <string name="save">Save</string>
+    <string name="cancel">Cancel</string>
+    <string name="edit_mood">Edit Mood</string>
+    <string name="delete_mood">Delete Mood</string>
+    <string name="manage_mood">Manage Mood</string>
+    <string name="share_mood_summary">Share mood summary</string>
+
+    <!-- Habits Fragment -->
+    <string name="habits_title">My Habits</string>
+    <string name="regular_habit">Regular Habit</string>
+    <string name="one_time_task">One-Time Task</string>
+    <string name="add_habit">Add Habit</string>
+    <string name="edit_habit">Edit Habit</string>
+    <string name="delete_habit">Delete Habit</string>
+    <string name="habit_name_hint">Habit Name</string>
+    <string name="habit_title_required">Required</string>
+    <string name="habit_created_success">Habit added successfully!</string>
+    <string name="habit_updated_success">Habit updated successfully!</string>
+    <string name="habit_deleted_success">Habit deleted successfully!</string>
+    <string name="delete_habit_confirm">Delete this Habit?</string>
+    <string name="delete_habit_keep_history">Delete Habit &amp; Keep History</string>
+    <string name="delete_habit_clear_history">Delete Habit &amp; Clear History</string>
+    <string name="no_habits_message">No habits added yet. Tap + to create one!</string>
+    <string name="create_new_habit">Create New Habit</string>
+    <string name="task_name">Task Name</string>
+    <string name="select_icon">Icon</string>
+    <string name="select_color">Color</string>
+    <string name="repeat">Repeat</string>
+    <string name="daily">Daily</string>
+    <string name="weekly">Weekly</string>
+    <string name="monthly">Monthly</string>
+    <string name="do_it_at">Do it at:</string>
+    <string name="morning">Morning</string>
+    <string name="afternoon">Afternoon</string>
+    <string name="evening">Evening</string>
+    <string name="set_reminder">Set Reminder</string>
+    <string name="when_label">When</string>
+    <string name="end_habit_on">End Habit on</string>
+    <string name="end_habit_after_days">After days</string>
+    <string name="save_habit">Save Habit</string>
+
+    <!-- Hydration Reminder -->
+    <string name="hydration_reminder">Hydration Reminder (minutes)</string>
+    <string name="hint_minutes">e.g., 60</string>
+    <string name="start">Start</string>
+    <string name="stop">Stop</string>
+    <string name="reminder_started">Hydration reminder started</string>
+    <string name="reminder_stopped">Hydration reminder stopped</string>
+    <string name="reminder_message">Time to drink water 💧</string>
+
+    <!-- Status & Notifications -->
+    <string name="status_off">Status: Off</string>
+    <string name="status_on">Status: On</string>
+
+    <!-- Common UI -->
+    <string name="ok">OK</string>
+    <string name="yes">Yes</string>
+    <string name="no">No</string>
+    <string name="confirm">Confirm</string>
+    <string name="close">Close</string>
+</resources>
