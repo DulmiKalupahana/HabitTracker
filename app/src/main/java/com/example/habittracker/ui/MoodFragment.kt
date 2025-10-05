@@ -11,6 +11,7 @@ import com.google.gson.Gson
 import com.google.gson.reflect.TypeToken
 import java.text.SimpleDateFormat
 import java.util.*
+import androidx.core.view.children
 
 class MoodFragment : Fragment() {
 
@@ -27,7 +28,6 @@ class MoodFragment : Fragment() {
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         prefs = requireContext().getSharedPreferences("moods", 0)
-
         val grid = view.findViewById<GridView>(R.id.calendarGrid)
         val monthTv = view.findViewById<TextView>(R.id.tvMonth)
         val tvInfo = view.findViewById<TextView>(R.id.tvMoodInfo)
@@ -40,14 +40,12 @@ class MoodFragment : Fragment() {
             currentMonth.add(Calendar.MONTH, -1)
             loadMonth(grid, monthTv, tvInfo)
         }
-
         btnNext.setOnClickListener {
             currentMonth.add(Calendar.MONTH, 1)
             loadMonth(grid, monthTv, tvInfo)
         }
     }
 
-    // ----------------- Mood storage -----------------
     private fun getMoodList(): MutableList<MoodEntry> {
         val json = prefs.getString("moodList", "[]")
         val type = object : TypeToken<MutableList<MoodEntry>>() {}.type
@@ -58,10 +56,9 @@ class MoodFragment : Fragment() {
         prefs.edit().putString("moodList", gson.toJson(list)).apply()
     }
 
-    // ----------------- Calendar load -----------------
     private fun loadMonth(grid: GridView, tvMonth: TextView, tvInfo: TextView) {
         val list = getMoodList()
-        val days = mutableListOf<Pair<Int, String?>>()
+        val days = mutableListOf<Triple<Int, String?, String?>>()
         val month = currentMonth.get(Calendar.MONTH)
         val year = currentMonth.get(Calendar.YEAR)
         tvMonth.text = SimpleDateFormat("MMMM yyyy", Locale.getDefault()).format(currentMonth.time)
@@ -69,8 +66,8 @@ class MoodFragment : Fragment() {
         val totalDays = currentMonth.getActualMaximum(Calendar.DAY_OF_MONTH)
         for (i in 1..totalDays) {
             val key = "$year-${String.format("%02d", month + 1)}-${String.format("%02d", i)}"
-            val emoji = list.find { dateFormat.format(Date(it.timestamp)) == key }?.emoji
-            days.add(i to emoji)
+            val entry = list.find { dateFormat.format(Date(it.timestamp)) == key }
+            days.add(Triple(i, entry?.emoji, entry?.label))
         }
 
         grid.adapter = object : BaseAdapter() {
@@ -79,11 +76,11 @@ class MoodFragment : Fragment() {
             override fun getItemId(pos: Int) = pos.toLong()
             override fun getView(pos: Int, cv: View?, parent: ViewGroup?): View {
                 val v = layoutInflater.inflate(R.layout.item_day, parent, false)
-                val (day, emoji) = days[pos]
+                val (day, emoji, label) = days[pos]
                 v.findViewById<TextView>(R.id.tvDayNum).text = day.toString()
                 v.findViewById<TextView>(R.id.tvEmoji).text = emoji ?: ""
+                v.findViewById<TextView>(R.id.tvMoodLabel).text = label ?: ""
 
-                // click to add/edit mood
                 v.setOnClickListener {
                     val selectedDate = Calendar.getInstance().apply {
                         set(year, month, day)
@@ -95,7 +92,6 @@ class MoodFragment : Fragment() {
         }
     }
 
-    // ----------------- Mood Picker -----------------
     private fun showMoodPicker(selectedDate: Calendar, tvInfo: TextView) {
         val dialogView = layoutInflater.inflate(R.layout.dialog_add_mood, null)
         val dialog = BottomSheetDialog(requireContext())
@@ -103,6 +99,9 @@ class MoodFragment : Fragment() {
 
         val emojiGrid = dialogView.findViewById<GridLayout>(R.id.moodEmojiGrid)
         val saveBtn = dialogView.findViewById<Button>(R.id.btnSaveMood)
+        val updateBtn = dialogView.findViewById<Button>(R.id.btnUpdateMood)
+        val deleteBtn = dialogView.findViewById<Button>(R.id.btnDeleteMood)
+        val actionRow = dialogView.findViewById<LinearLayout>(R.id.actionRow)
 
         val moods = listOf(
             "😎" to "Great",
@@ -111,41 +110,116 @@ class MoodFragment : Fragment() {
             "😢" to "Not Good",
             "😡" to "Bad"
         )
-        var selected = moods[0]
+        var selectedEmoji: Pair<String, String>? = null
 
-        moods.forEach { (emoji, label) ->
-            val emojiView = TextView(requireContext()).apply {
-                text = emoji
-                textSize = 36f
-                gravity = Gravity.CENTER
-                setPadding(20, 20, 20, 20)
-                setOnClickListener {
-                    selected = emoji to label
-                    setBackgroundResource(R.drawable.selected_emoji_bg)
-                }
-            }
-            emojiGrid.addView(emojiView)
+        // Check if mood already exists for that date
+        val existing = getMoodList().find { isSameDay(it.timestamp, selectedDate.timeInMillis) }
+
+        // Toggle visibility
+        if (existing != null) {
+            saveBtn.visibility = View.GONE
+            actionRow.visibility = View.VISIBLE
+        } else {
+            saveBtn.visibility = View.VISIBLE
+            actionRow.visibility = View.GONE
         }
 
+        // Create emoji cards
+        moods.forEach { (emoji, label) ->
+            val emojiCard = LinearLayout(requireContext()).apply {
+                orientation = LinearLayout.VERTICAL
+                gravity = Gravity.CENTER
+                setPadding(16, 16, 16, 16)
+                background = resources.getDrawable(R.drawable.mood_card_unselected, null)
+
+                val emojiText = TextView(context).apply {
+                    text = emoji
+                    textSize = 36f
+                    gravity = Gravity.CENTER
+                }
+
+                val labelText = TextView(context).apply {
+                    text = label
+                    textSize = 14f
+                    gravity = Gravity.CENTER
+                    setTextColor(resources.getColor(R.color.textPrimary, null))
+                }
+
+                addView(emojiText)
+                addView(labelText)
+
+                // Preselect current mood
+                if (existing != null && existing.emoji == emoji) {
+                    setBackgroundResource(R.drawable.mood_card_selected)
+                    labelText.setTextColor(resources.getColor(android.R.color.white, null))
+                    selectedEmoji = emoji to label
+                }
+
+                setOnClickListener {
+                    selectedEmoji = emoji to label
+                    for (child in emojiGrid.children) {
+                        child.setBackgroundResource(R.drawable.mood_card_unselected)
+                        val lbl = (child as LinearLayout).getChildAt(1) as TextView
+                        lbl.setTextColor(resources.getColor(R.color.textPrimary, null))
+                    }
+                    setBackgroundResource(R.drawable.mood_card_selected)
+                    labelText.setTextColor(resources.getColor(android.R.color.white, null))
+                }
+            }
+            emojiGrid.addView(emojiCard)
+        }
+
+        // Add Mood
         saveBtn.setOnClickListener {
+            selectedEmoji?.let { (emoji, label) ->
+                val list = getMoodList()
+                list.removeAll { isSameDay(it.timestamp, selectedDate.timeInMillis) }
+                list.add(MoodEntry(selectedDate.timeInMillis, emoji, label))
+                saveMoodList(list)
+                loadMonth(
+                    requireView().findViewById(R.id.calendarGrid),
+                    requireView().findViewById(R.id.tvMonth),
+                    tvInfo
+                )
+                dialog.dismiss()
+                Toast.makeText(requireContext(), "Mood added", Toast.LENGTH_SHORT).show()
+            }
+        }
+
+        // Update Mood
+        updateBtn.setOnClickListener {
+            selectedEmoji?.let { (emoji, label) ->
+                val list = getMoodList()
+                list.removeAll { isSameDay(it.timestamp, selectedDate.timeInMillis) }
+                list.add(MoodEntry(selectedDate.timeInMillis, emoji, label))
+                saveMoodList(list)
+                loadMonth(
+                    requireView().findViewById(R.id.calendarGrid),
+                    requireView().findViewById(R.id.tvMonth),
+                    tvInfo
+                )
+                dialog.dismiss()
+                Toast.makeText(requireContext(), "Mood updated", Toast.LENGTH_SHORT).show()
+            }
+        }
+
+        // Delete Mood
+        deleteBtn.setOnClickListener {
             val list = getMoodList()
             list.removeAll { isSameDay(it.timestamp, selectedDate.timeInMillis) }
-            list.add(MoodEntry(selectedDate.timeInMillis, selected.first, selected.second))
             saveMoodList(list)
-
-            // refresh calendar UI
             loadMonth(
                 requireView().findViewById(R.id.calendarGrid),
                 requireView().findViewById(R.id.tvMonth),
                 tvInfo
             )
             dialog.dismiss()
+            Toast.makeText(requireContext(), "Mood deleted", Toast.LENGTH_SHORT).show()
         }
 
         dialog.show()
     }
 
-    // ----------------- Utility -----------------
     private fun isSameDay(t1: Long, t2: Long): Boolean {
         val fmt = SimpleDateFormat("yyyyMMdd", Locale.getDefault())
         return fmt.format(Date(t1)) == fmt.format(Date(t2))

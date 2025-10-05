@@ -7,9 +7,10 @@ import android.os.Bundle
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
-import androidx.fragment.app.Fragment
+import androidx.navigation.fragment.NavHostFragment
+import androidx.navigation.ui.setupWithNavController
 import com.example.habittracker.databinding.ActivityMainBinding
-import com.example.habittracker.ui.HomeFragment
+import com.google.android.material.bottomnavigation.BottomNavigationView
 
 class MainActivity : AppCompatActivity() {
     private lateinit var vb: ActivityMainBinding
@@ -20,7 +21,6 @@ class MainActivity : AppCompatActivity() {
         vb = ActivityMainBinding.inflate(layoutInflater)
         setContentView(vb.root)
 
-        // 🔔 Request notification permission for Android 13+
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
             if (ContextCompat.checkSelfPermission(
                     this,
@@ -35,15 +35,11 @@ class MainActivity : AppCompatActivity() {
             }
         }
 
-        // Show HomeFragment by default
-        if (savedInstanceState == null) {
-            swap(HomeFragment())
-        }
-    }
+        val navHostFragment =
+            supportFragmentManager.findFragmentById(R.id.nav_host_fragment) as NavHostFragment
+        val navController = navHostFragment.navController
 
-    private fun swap(f: Fragment) {
-        supportFragmentManager.beginTransaction()
-            .replace(R.id.fragmentContainer, f)
-            .commit()
+        val bottomNav = findViewById<BottomNavigationView>(R.id.bottomNav)
+        bottomNav.setupWithNavController(navController)
     }
 }

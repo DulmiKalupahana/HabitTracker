@@ -6,7 +6,7 @@
     android:padding="16dp"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    tools:context=".ui.habit.HabitsFragment">
+    tools:context=".ui.HabitsFragment">
 
     <TextView
         android:text="My Habits"
@@ -26,13 +26,6 @@
         android:paddingBottom="80dp"
         tools:listitem="@layout/item_habit" />
 
-    <com.google.android.material.floatingactionbutton.FloatingActionButton
-        android:id="@+id/fabAddHabit"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_gravity="end|bottom"
-        android:layout_margin="16dp"
-        android:contentDescription="Add Habit"
-        android:src="@drawable/ic_add"
-        android:backgroundTint="@color/colorAccent" />
+    <include layout="@layout/fab_add_habit" />
+
 </LinearLayout>

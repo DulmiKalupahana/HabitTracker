@@ -9,6 +9,15 @@
     <string name="nav_habits">My Habits</string>
     <string name="nav_account">Account</string>
 
+    <!-- Home Fragment -->
+    <string name="today">Today</string>
+    <string name="weekly">Weekly</string>
+    <string name="overall">Overall</string>
+    <string name="all">All</string>
+    <string name="morning">Morning</string>
+    <string name="afternoon">Afternoon</string>
+    <string name="evening">Evening</string>
+
     <!-- Mood Fragment -->
     <string name="mood_journal_title">Mood Journal</string>
     <string name="select_date_text">Select a date to view or add mood</string>
@@ -29,6 +38,8 @@
     <string name="delete_mood">Delete Mood</string>
     <string name="manage_mood">Manage Mood</string>
     <string name="share_mood_summary">Share mood summary</string>
+    <string name="mood_prompt">How is your mood today?</string>
+    <string name="btn_add_mood">Add</string>
 
     <!-- Habits Fragment -->
     <string name="habits_title">My Habits</string>
@@ -52,17 +63,14 @@
     <string name="select_color">Color</string>
     <string name="repeat">Repeat</string>
     <string name="daily">Daily</string>
-    <string name="weekly">Weekly</string>
     <string name="monthly">Monthly</string>
     <string name="do_it_at">Do it at:</string>
-    <string name="morning">Morning</string>
-    <string name="afternoon">Afternoon</string>
-    <string name="evening">Evening</string>
     <string name="set_reminder">Set Reminder</string>
     <string name="when_label">When</string>
     <string name="end_habit_on">End Habit on</string>
     <string name="end_habit_after_days">After days</string>
     <string name="save_habit">Save Habit</string>
+    <string name="date">Date</string>
 
     <!-- Hydration Reminder -->
     <string name="hydration_reminder">Hydration Reminder (minutes)</string>

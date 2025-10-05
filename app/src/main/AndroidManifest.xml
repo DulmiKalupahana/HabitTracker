@@ -1,30 +1,35 @@
 <?xml version="1.0" encoding="utf-8"?>
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
     package="com.example.habittracker">
-
     <!-- Permission should be outside application tag -->
-    <uses-permission android:name="android.permission.POST_NOTIFICATIONS"/>
+    <uses-permission android:name="android.permission.POST_NOTIFICATIONS" />
 
     <application
         android:name=".MyApp"
         android:allowBackup="true"
-        android:label="HabitTracker"
         android:icon="@mipmap/ic_launcher"
+        android:label="HabitTracker"
         android:roundIcon="@mipmap/ic_launcher_round"
         android:supportsRtl="true"
         android:theme="@style/Theme.Material3.DayNight.NoActionBar">
-
-        <activity android:name=".MainActivity" android:exported="true">
+        <activity
+            android:name=".ui.AddHabitDialog"
+            android:exported="false" />
+        <activity
+            android:name=".ui.AddHabitDialog.kt"
+            android:exported="false" />
+        <activity
+            android:name=".MainActivity"
+            android:exported="true">
             <intent-filter>
-                <action android:name="android.intent.action.MAIN"/>
-                <category android:name="android.intent.category.LAUNCHER"/>
-            </intent-filter>
-        </activity>
+                <action android:name="android.intent.action.MAIN" />
 
-        <!-- Hydration notifications -->
+                <category android:name="android.intent.category.LAUNCHER" />
+            </intent-filter>
+        </activity> <!-- Hydration notifications -->
         <receiver
             android:name=".notify.HydrationReceiver"
             android:exported="false" />
-
     </application>
+
 </manifest>

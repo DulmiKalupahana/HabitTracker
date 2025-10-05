@@ -4,16 +4,18 @@
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
     android:padding="24dp"
+    android:gravity="center_horizontal"
     android:background="@drawable/dialog_bg">
 
     <TextView
+        android:id="@+id/tvMoodTitle"
         android:text="How is your mood today?"
         android:textSize="18sp"
         android:textStyle="bold"
         android:textColor="@color/textPrimary"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:paddingBottom="12dp" />
+        android:paddingBottom="16dp" />
 
     <!-- Emoji Mood Grid -->
     <GridLayout
@@ -23,23 +25,60 @@
         android:layout_height="wrap_content"
         android:alignmentMode="alignMargins"
         android:rowCount="2"
-        android:useDefaultMargins="true">
+        android:useDefaultMargins="true"
+        android:layout_marginHorizontal="16dp"
+        android:layout_marginTop="8dp"
+        android:layout_marginBottom="12dp" />
 
-        <!-- example emojis, added dynamically in code if you like -->
-        <TextView
-            android:text="😎"
-            android:textSize="32sp"
-            android:gravity="center"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"/>
-    </GridLayout>
-
+    <!-- Single Add Button -->
     <Button
         android:id="@+id/btnSaveMood"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_marginTop="20dp"
-        android:text="I feel great!"
-        android:backgroundTint="@color/colorAccent"
-        android:textColor="@android:color/white" />
+        android:text="Add Mood"
+        android:textColor="@android:color/white"
+        android:textStyle="bold"
+        android:textAllCaps="false"
+        android:background="@drawable/rounded_button_purple"
+        android:elevation="2dp"
+        android:visibility="visible"
+        android:layout_marginHorizontal="20dp"
+        android:layout_marginBottom="6dp" />
+
+    <!-- Update + Delete Row -->
+    <LinearLayout
+        android:id="@+id/actionRow"
+        android:orientation="horizontal"
+        android:gravity="center"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:visibility="gone"
+        android:layout_marginTop="6dp"
+        android:layout_marginBottom="6dp">
+
+        <Button
+            android:id="@+id/btnUpdateMood"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:layout_marginEnd="8dp"
+            android:text="Update Mood"
+            android:textColor="@android:color/white"
+            android:textStyle="bold"
+            android:textAllCaps="false"
+            android:background="@drawable/rounded_button_purple"
+            android:elevation="2dp" />
+
+        <Button
+            android:id="@+id/btnDeleteMood"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:text="Delete Mood"
+            android:textColor="@android:color/white"
+            android:textStyle="bold"
+            android:textAllCaps="false"
+            android:background="@drawable/rounded_button_red"
+            android:elevation="2dp" />
+    </LinearLayout>
 </LinearLayout>

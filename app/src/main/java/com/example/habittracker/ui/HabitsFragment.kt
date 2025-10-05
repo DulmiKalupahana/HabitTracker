@@ -14,6 +14,8 @@ import com.example.habittracker.R
 import com.example.habittracker.data.Habit
 import com.example.habittracker.data.PrefStore
 import com.example.habittracker.data.todayKey
+import com.google.android.material.floatingactionbutton.FloatingActionButton
+import android.widget.Toast
 import java.util.*
 
 class HabitsFragment : Fragment() {
@@ -34,13 +36,25 @@ class HabitsFragment : Fragment() {
 
         view.findViewById<View>(R.id.fabAddHabit).setOnClickListener { showAddDialog() }
         refresh()
+
+        val fab = view.findViewById<FloatingActionButton>(R.id.fabAddHabit)
+        fab.setOnClickListener {
+            fab.animate().scaleX(0.9f).scaleY(0.9f).setDuration(100).withEndAction {
+                fab.animate().scaleX(1f).scaleY(1f).setDuration(100)
+                AddHabitDialog.show(requireContext()) {
+                    Toast.makeText(requireContext(), "Habit added!", Toast.LENGTH_SHORT).show()
+                }
+            }
+        }
+
     }
 
     private fun refresh() {
         adapter.submit(store.getHabits(), store.getCompleted(todayKey()))
     }
 
-    private fun showAddDialog(existing: Habit? = null) {
+    fun showAddDialog(existing: Habit? = null) {
+        AddHabitDialog.show(requireContext()) { refresh() }
         val v = layoutInflater.inflate(R.layout.dialog_add_habit, null)
         val et = v.findViewById<EditText>(R.id.etTitle)
         if (existing != null) et.setText(existing.title)
@@ -80,10 +94,10 @@ class HabitsFragment : Fragment() {
     }
 }
 
-private class HabitAdapter(
-    val onToggle: (Habit, Boolean) -> Unit,
-    val onEdit: (Habit) -> Unit,
-    val onDelete: (Habit) -> Unit
+class HabitAdapter(
+    private val onToggle: (Habit, Boolean) -> Unit,
+    private val onEdit: (Habit) -> Unit,
+    private val onDelete: (Habit) -> Unit
 ) : RecyclerView.Adapter<HabitVH>() {
     private val items = mutableListOf<Habit>()
     private val completed = mutableSetOf<String>()
@@ -98,7 +112,7 @@ private class HabitAdapter(
     override fun getItemCount() = items.size
 }
 
-private class HabitVH(v: View) : RecyclerView.ViewHolder(v) {
+class HabitVH(v: View) : RecyclerView.ViewHolder(v) {
     fun bind(h: Habit, done: Boolean, onToggle: (Habit, Boolean) -> Unit, onEdit: (Habit) -> Unit, onDelete: (Habit) -> Unit) {
         val cb = itemView.findViewById<CheckBox>(R.id.cbDone)
         val title = itemView.findViewById<TextView>(R.id.tvTitle)

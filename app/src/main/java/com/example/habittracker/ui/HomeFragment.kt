@@ -2,68 +2,158 @@ package com.example.habittracker.ui
 
 import android.os.Bundle
 import android.view.*
-import android.widget.TextView
+import android.widget.*
 import androidx.fragment.app.Fragment
+import androidx.recyclerview.widget.LinearLayoutManager
+import androidx.recyclerview.widget.RecyclerView
 import com.example.habittracker.R
+import com.example.habittracker.data.Habit
 import com.example.habittracker.data.PrefStore
 import com.example.habittracker.data.todayKey
+import com.google.android.material.floatingactionbutton.FloatingActionButton
 import com.github.mikephil.charting.charts.LineChart
-import com.github.mikephil.charting.data.Entry
-import com.github.mikephil.charting.data.LineData
-import com.github.mikephil.charting.data.LineDataSet
 import com.github.mikephil.charting.components.XAxis
-import org.threeten.bp.LocalDate
-import org.threeten.bp.ZoneId
+import com.github.mikephil.charting.data.*
+import com.github.mikephil.charting.formatter.ValueFormatter
+import com.example.habittracker.ui.AddHabitDialog
 import java.util.*
 
 class HomeFragment : Fragment() {
-    override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View {
-        return inflater.inflate(R.layout.fragment_home, container, false)
-    }
+
+    private lateinit var store: PrefStore
+    private lateinit var rv: RecyclerView
+    private lateinit var adapter: HabitAdapter
+    private lateinit var tvStreak: TextView
+    private lateinit var tvTodayCount: TextView
+    private lateinit var moodChart: LineChart
+
+    override fun onCreateView(
+        inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?
+    ): View = inflater.inflate(R.layout.fragment_home, container, false)
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
-        val store = PrefStore(requireContext())
-        val dateTv = view.findViewById<TextView>(R.id.tvDate)
-        val progTv = view.findViewById<TextView>(R.id.tvProgress)
-        val habits = store.getHabits()
-        val done = store.getCompleted(todayKey())
+        store = PrefStore(requireContext())
 
-        // show today's date
-        dateTv.text = LocalDate.now().toString()
-        progTv.text = "Today's habits: ${done.size}/${habits.size}"
+        tvStreak = view.findViewById(R.id.tvStreak)
+        tvTodayCount = view.findViewById(R.id.tvTodayCount)
+        moodChart = view.findViewById(R.id.moodChart)
 
-        // Weekly mood trend: map emoji to score (😀=5 ... 😢=1)
-        val score = mapOf("🤩" to 5f, "🥳" to 5f, "😀" to 5f, "🙂" to 4f, "😌" to 4f,
-            "😐" to 3f, "😕" to 2f, "😡" to 1f, "😢" to 1f, "😴" to 2f)
+        rv = view.findViewById(R.id.rvTodayHabits)
+        rv.layoutManager = LinearLayoutManager(requireContext())
+        adapter = HabitAdapter(::toggleDone, ::editHabit, ::deleteHabit)
+        rv.adapter = adapter
 
-        val moods = store.getMoods()
-        val today = LocalDate.now()
-        val last7 = (6 downTo 0).map { d -> today.minusDays(d.toLong()) }
-
-        val entries = mutableListOf<Entry>()
-        last7.forEachIndexed { idx, day ->
-            val start = day.atStartOfDay(ZoneId.systemDefault()).toEpochSecond() * 1000
-            val end = day.plusDays(1).atStartOfDay(ZoneId.systemDefault()).toEpochSecond() * 1000
-            val dayMoods = moods.filter { it.timestamp in start until end }
-            val avg = if (dayMoods.isEmpty()) 0f else dayMoods.map { score[it.emoji] ?: 3f }.average().toFloat()
-            entries.add(Entry(idx.toFloat(), avg))
+        view.findViewById<FloatingActionButton>(R.id.fabAddHabitHome).setOnClickListener {
+            AddHabitDialog.show(requireContext()) {
+                Toast.makeText(requireContext(), "Habit Added!", Toast.LENGTH_SHORT).show()
+                refresh()
+            }
         }
 
-        val chart = view.findViewById<LineChart>(R.id.lineChart)
-        val ds = LineDataSet(entries, "Mood (7 days)")
-        ds.setDrawValues(false)
-        ds.setDrawCircles(true)
+        view.findViewById<Button>(R.id.btnWaterReminder).setOnClickListener {
+            Toast.makeText(requireContext(), "Hydration reminder set!", Toast.LENGTH_SHORT).show()
+        }
 
-        val data = LineData(ds)
-        chart.data = data
+        view.findViewById<Button>(R.id.btnQuickMood).setOnClickListener {
+            Toast.makeText(requireContext(), "Open mood dialog here!", Toast.LENGTH_SHORT).show()
+        }
 
-        chart.axisLeft.axisMinimum = 0f
-        chart.axisLeft.axisMaximum = 5f
-        chart.axisRight.isEnabled = false
-        chart.xAxis.position = XAxis.XAxisPosition.BOTTOM
-        chart.description.isEnabled = false
+        setupMoodChart()
+        refresh()
+    }
 
-        chart.invalidate()
+    private fun refresh() {
+        val all = store.getHabits()
+        val doneToday = store.getCompleted(todayKey())
+        adapter.submit(all, doneToday)
 
+        val habitsDone = doneToday.size
+        val streak = calcStreak()
+
+        tvTodayCount.text = "$habitsDone Habits"
+        tvStreak.text = "$streak Days"
+
+        updateMoodChart()
+    }
+
+    private fun calcStreak(): Int {
+        var streak = 0
+        val cal = Calendar.getInstance()
+        while (true) {
+            val key = todayKey(cal.time)
+            val habits = store.getHabits()
+            val done = store.getCompleted(key)
+            val allDone = habits.isNotEmpty() && done.size == habits.size
+            if (allDone) streak++ else break
+            cal.add(Calendar.DAY_OF_YEAR, -1)
+        }
+        return streak
+    }
+
+    private fun setupMoodChart() {
+        moodChart.description.isEnabled = false
+        moodChart.axisRight.isEnabled = false
+        moodChart.axisLeft.axisMinimum = 0f
+        moodChart.axisLeft.axisMaximum = 100f
+        moodChart.legend.isEnabled = false
+        moodChart.xAxis.position = XAxis.XAxisPosition.BOTTOM
+        moodChart.xAxis.setDrawGridLines(false)
+    }
+
+    private fun updateMoodChart() {
+        val labels = listOf("Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun")
+        val entries = mutableListOf<Entry>()
+        for (i in labels.indices) {
+            entries.add(Entry(i.toFloat(), (50..100).random().toFloat()))
+        }
+
+        val set = LineDataSet(entries, "Mood Trend").apply {
+            color = resources.getColor(R.color.taskBlue, null)
+            setDrawCircles(true)
+            setDrawValues(false)
+            mode = LineDataSet.Mode.CUBIC_BEZIER
+        }
+
+        moodChart.xAxis.valueFormatter = object : ValueFormatter() {
+            override fun getFormattedValue(value: Float): String {
+                val idx = value.toInt()
+                return labels.getOrElse(idx) { "" }
+            }
+        }
+
+        moodChart.data = LineData(set)
+        moodChart.invalidate()
+    }
+
+    private fun todayKey(date: Date = Date()): String {
+        val c = Calendar.getInstance()
+        c.time = date
+        return String.format("%04d-%02d-%02d",
+            c.get(Calendar.YEAR),
+            c.get(Calendar.MONTH) + 1,
+            c.get(Calendar.DAY_OF_MONTH)
+        )
+    }
+
+    private fun toggleDone(h: Habit, done: Boolean) {
+        val set = store.getCompleted(todayKey())
+        if (done) set.add(h.id) else set.remove(h.id)
+        store.setCompleted(todayKey(), set)
+        refresh()
+    }
+
+    private fun editHabit(h: Habit) {
+        val fragment = HabitsFragment()
+        fragment.showAddDialog(h)
+    }
+
+    private fun deleteHabit(h: Habit) {
+        val list = store.getHabits()
+        list.removeAll { it.id == h.id }
+        store.saveHabits(list)
+        val set = store.getCompleted(todayKey())
+        set.remove(h.id)
+        store.setCompleted(todayKey(), set)
+        refresh()
     }
 }

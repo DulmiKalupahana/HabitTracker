@@ -60,6 +60,8 @@ dependencies {
     // Gson for JSON serialization
     implementation("com.google.code.gson:gson:2.13.2")
 
+    implementation("androidx.gridlayout:gridlayout:1.0.0")
+
     // Navigation
     implementation("androidx.navigation:navigation-fragment-ktx:2.9.5")
     implementation("androidx.navigation:navigation-ui-ktx:2.9.5")
