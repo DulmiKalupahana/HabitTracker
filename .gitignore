@@ -32,3 +32,4 @@ captures/
 # Generated APKs
 app/release/
 app/debug/
+.env
