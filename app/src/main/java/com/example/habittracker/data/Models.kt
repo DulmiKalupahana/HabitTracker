@@ -5,7 +5,12 @@ import java.util.*
 //  Habits
 data class Habit(
     val id: String,
-    var title: String
+    var title: String,
+    var icon: String? = null,
+    var color: String? = null,
+    var repeat: String? = "Daily",
+    var date: String? = null,
+    var reminder: String? = null
 )
 
 //  Moods

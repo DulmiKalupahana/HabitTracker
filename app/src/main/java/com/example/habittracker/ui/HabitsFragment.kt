@@ -1,12 +1,8 @@
 package com.example.habittracker.ui
 
-import android.app.AlertDialog
 import android.os.Bundle
 import android.view.*
-import android.widget.CheckBox
-import android.widget.EditText
-import android.widget.ImageButton
-import android.widget.TextView
+import android.widget.*
 import androidx.fragment.app.Fragment
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
@@ -18,27 +14,23 @@ import com.google.android.material.floatingactionbutton.FloatingActionButton
 import android.widget.Toast
 import java.util.*
 
-// Fragment for displaying and managing the user's habits list
 class HabitsFragment : Fragment() {
+
     private lateinit var store: PrefStore
     private lateinit var rv: RecyclerView
     private lateinit var adapter: HabitAdapter
 
-    override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View {
-        return inflater.inflate(R.layout.fragment_habits, container, false)
-    }
+    override fun onCreateView(
+        inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?
+    ): View = inflater.inflate(R.layout.fragment_habits, container, false)
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         store = PrefStore(requireContext())
 
-        // Setup RecyclerView for habits list
         rv = view.findViewById(R.id.rvHabits)
         rv.layoutManager = LinearLayoutManager(requireContext())
         adapter = HabitAdapter(::toggleDone, ::editHabit, ::deleteHabit)
         rv.adapter = adapter
-
-        view.findViewById<View>(R.id.fabAddHabit).setOnClickListener { showAddDialog() }
-        refresh()
 
         val fab = view.findViewById<FloatingActionButton>(R.id.fabAddHabit)
         fab.setOnClickListener {
@@ -46,54 +38,39 @@ class HabitsFragment : Fragment() {
                 fab.animate().scaleX(1f).scaleY(1f).setDuration(100)
                 AddHabitDialog.show(requireContext()) {
                     Toast.makeText(requireContext(), "Habit added!", Toast.LENGTH_SHORT).show()
+                    refresh()
                 }
             }
         }
 
+        refresh()
     }
 
-    // Reload habits and today's completion status from storage
+    // 🔄 Refresh RecyclerView
     private fun refresh() {
         adapter.submit(store.getHabits(), store.getCompleted(todayKey()))
     }
 
-    fun showAddDialog(existing: Habit? = null) {
-        AddHabitDialog.show(requireContext()) { refresh() }
-        val v = layoutInflater.inflate(R.layout.dialog_add_habit, null)
-        val et = v.findViewById<EditText>(R.id.etTitle)
-        if (existing != null) et.setText(existing.title)
-
-        val dlg = AlertDialog.Builder(requireContext()).setView(v).create()
-        v.findViewById<View>(R.id.btnCancel).setOnClickListener { dlg.dismiss() }
-        v.findViewById<View>(R.id.btnSave).setOnClickListener {
-            val t = et.text.toString().trim()
-            if (t.isEmpty()) { et.error = "Required"; return@setOnClickListener }
-            val list = store.getHabits()
-            if (existing == null) list.add(Habit(UUID.randomUUID().toString(), t)) else existing.title = t
-            store.saveHabits(list)
-            dlg.dismiss()
+    // ✏️ Edit Habit
+    private fun editHabit(h: Habit) {
+        AddHabitDialog.show(requireContext()) {
+            Toast.makeText(requireContext(), "Habit updated!", Toast.LENGTH_SHORT).show()
             refresh()
         }
-        dlg.show()
     }
 
-    // Open edit dialog for existing habit
-    private fun editHabit(h: Habit) = showAddDialog(h)
-
-    // Delete habit and remove from completion tracking
+    // ❌ Delete Habit
     private fun deleteHabit(h: Habit) {
         val list = store.getHabits()
         list.removeAll { it.id == h.id }
         store.saveHabits(list)
-
-        // Remove from today's completion status
         val set = store.getCompleted(todayKey())
         set.remove(h.id)
         store.setCompleted(todayKey(), set)
         refresh()
     }
 
-    // Toggle habit completion status for today
+    // ✅ Toggle complete
     private fun toggleDone(h: Habit, done: Boolean) {
         val set = store.getCompleted(todayKey())
         if (done) set.add(h.id) else set.remove(h.id)
@@ -102,34 +79,65 @@ class HabitsFragment : Fragment() {
     }
 }
 
+// Adapter + ViewHolder
 class HabitAdapter(
     private val onToggle: (Habit, Boolean) -> Unit,
     private val onEdit: (Habit) -> Unit,
     private val onDelete: (Habit) -> Unit
 ) : RecyclerView.Adapter<HabitVH>() {
+
     private val items = mutableListOf<Habit>()
     private val completed = mutableSetOf<String>()
+
     fun submit(list: List<Habit>, completedSet: Set<String>) {
         items.clear(); items.addAll(list)
         completed.clear(); completed.addAll(completedSet)
         notifyDataSetChanged()
     }
-    override fun onCreateViewHolder(p: ViewGroup, vType: Int) =
-        HabitVH(LayoutInflater.from(p.context).inflate(R.layout.item_habit, p, false))
-    override fun onBindViewHolder(h: HabitVH, pos: Int) = h.bind(items[pos], completed.contains(items[pos].id), onToggle, onEdit, onDelete)
+
+    override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): HabitVH {
+        val v = LayoutInflater.from(parent.context).inflate(R.layout.item_habit, parent, false)
+        return HabitVH(v)
+    }
+
+    override fun onBindViewHolder(holder: HabitVH, pos: Int) {
+        holder.bind(items[pos], completed.contains(items[pos].id), onToggle, onEdit, onDelete)
+    }
+
     override fun getItemCount() = items.size
 }
 
 class HabitVH(v: View) : RecyclerView.ViewHolder(v) {
-    fun bind(h: Habit, done: Boolean, onToggle: (Habit, Boolean) -> Unit, onEdit: (Habit) -> Unit, onDelete: (Habit) -> Unit) {
+    fun bind(
+        h: Habit,
+        done: Boolean,
+        onToggle: (Habit, Boolean) -> Unit,
+        onEdit: (Habit) -> Unit,
+        onDelete: (Habit) -> Unit
+    ) {
         val cb = itemView.findViewById<CheckBox>(R.id.cbDone)
         val title = itemView.findViewById<TextView>(R.id.tvTitle)
         val edit = itemView.findViewById<ImageButton>(R.id.btnEdit)
         val del = itemView.findViewById<ImageButton>(R.id.btnDelete)
+        val colorBar = itemView.findViewById<View>(R.id.colorBar)
+
+        // 🏷 Title + check
         title.text = h.title
         cb.setOnCheckedChangeListener(null)
         cb.isChecked = done
         cb.setOnCheckedChangeListener { _, isChecked -> onToggle(h, isChecked) }
+
+        //  Color bar tint
+        try {
+            if (!h.color.isNullOrEmpty()) {
+                colorBar.backgroundTintList =
+                    android.content.res.ColorStateList.valueOf(
+                        android.graphics.Color.parseColor(h.color)
+                    )
+            }
+        } catch (_: Exception) { }
+
+        //  Buttons
         edit.setOnClickListener { onEdit(h) }
         del.setOnClickListener { onDelete(h) }
     }

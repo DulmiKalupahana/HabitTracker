@@ -1,24 +1,36 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <!-- Core Colors -->
-    <color name="colorPrimary">#EEDBFB</color>   <!-- pastel purple bg (main background) -->
-    <color name="colorSecondary">#FFFFFF</color> <!-- cards / sections -->
-    <color name="colorAccent">#8651D5</color>    <!-- accent (buttons, highlights) -->
+!-- 60% - Primary Background -->
+    <color name="colorPrimary">#FFFFFF</color>        <!-- Main white background -->
 
-    <!-- Text Colors -->
-    <color name="textPrimary">#232336</color>    <!-- dark readable text -->
-    <color name="textSecondary">#505050</color>  <!-- lighter subtitle text -->
-    <color name="textAccent">#8A3FFC</color>     <!-- highlight / link text -->
+    <!-- 30% - Secondary Surfaces  -->
+    <color name="colorSecondary">#E7E3FB</color>     <!-- Soft lavender -->
 
-    <!-- Border / Line Colors -->
-    <color name="lineSoft">#E4E4FF</color>
+    <!-- 10% - Accent / Brand color -->
+    <color name="colorAccent">#8B88F8</color>        <!-- Deep purple accent -->
 
+
+    <!-- Text -->
+    <color name="textPrimary">#000000</color>        <!-- Main dark text -->
+    <color name="textSecondary">#505050</color>      <!-- Subtitle / hint gray -->
+    <color name="textOnAccent">#FFFFFF</color>
+
+    <!-- Borders & Lines -->
+    <color name="lineSoft">#E5E0FA</color>           <!-- Light lavender border -->
+    <color name="cardShadow">#1A000000</color>       <!-- Subtle transparent shadow -->
+
+    <!--  Habit / Category Colors -->
     <color name="taskGreen">#C8E6C9</color>
     <color name="taskYellow">#FFF59D</color>
     <color name="taskOrange">#FFCC80</color>
     <color name="taskPink">#F8BBD0</color>
     <color name="taskBlue">#BBDEFB</color>
-    <color name="purple_200">#BB86FC</color>
+    <color name="taskPurple">#D1C4E9</color>
 
+    <!-- Graph Colors -->
+    <color name="chartLine">#8651D5</color>          <!-- Purple accent line -->
+    <color name="chartFill">#EAE0FB</color>          <!-- Subtle lavender fill area -->
+    <color name="chartPoint">#A77DEB</color>         <!-- Node highlight -->
+    <color name="chartGrid">#EDE7FB</color>          <!-- Very soft grid lines -->
 
 </resources>

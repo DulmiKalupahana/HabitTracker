@@ -16,9 +16,9 @@ import com.github.mikephil.charting.components.XAxis
 import com.github.mikephil.charting.data.*
 import com.github.mikephil.charting.formatter.ValueFormatter
 import com.example.habittracker.ui.AddHabitDialog
+import android.widget.Toast
 import java.util.*
 
-// Home dashboard showing habit completion stats and mood trend chart
 class HomeFragment : Fragment() {
 
     private lateinit var store: PrefStore
@@ -26,7 +26,7 @@ class HomeFragment : Fragment() {
     private lateinit var adapter: HabitAdapter
     private lateinit var tvStreak: TextView
     private lateinit var tvTodayCount: TextView
-    private lateinit var moodChart: LineChart
+    private lateinit var habitCompletionChart: LineChart
 
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?
@@ -35,35 +35,42 @@ class HomeFragment : Fragment() {
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         store = PrefStore(requireContext())
 
-        // Initialize UI elements
         tvStreak = view.findViewById(R.id.tvStreak)
         tvTodayCount = view.findViewById(R.id.tvTodayCount)
-        moodChart = view.findViewById(R.id.moodChart)
+        habitCompletionChart = view.findViewById(R.id.habitCompletionChart)
 
         rv = view.findViewById(R.id.rvTodayHabits)
         rv.layoutManager = LinearLayoutManager(requireContext())
         adapter = HabitAdapter(::toggleDone, ::editHabit, ::deleteHabit)
         rv.adapter = adapter
 
-        view.findViewById<FloatingActionButton>(R.id.fabAddHabitHome).setOnClickListener {
-            AddHabitDialog.show(requireContext()) {
-                Toast.makeText(requireContext(), "Habit Added!", Toast.LENGTH_SHORT).show()
-                refresh()
+        //  Floating button animation + habit dialog
+        val fabAddHabit = view.findViewById<FloatingActionButton>(R.id.fabAddHabit)
+        fabAddHabit.setOnClickListener {
+            fabAddHabit.animate().scaleX(0.9f).scaleY(0.9f).setDuration(100).withEndAction {
+                fabAddHabit.animate().scaleX(1f).scaleY(1f).setDuration(100)
+                AddHabitDialog.show(requireContext()) {
+                    Toast.makeText(requireContext(), "Habit Added!", Toast.LENGTH_SHORT).show()
+                    refresh()
+                }
             }
         }
 
+        //  Hydration button
         view.findViewById<Button>(R.id.btnWaterReminder).setOnClickListener {
             Toast.makeText(requireContext(), "Hydration reminder set!", Toast.LENGTH_SHORT).show()
         }
 
+        //  Mood button
         view.findViewById<Button>(R.id.btnQuickMood).setOnClickListener {
             Toast.makeText(requireContext(), "Open mood dialog here!", Toast.LENGTH_SHORT).show()
         }
 
-        setupMoodChart()
+        setupCompletionChart()
         refresh()
     }
 
+    //  Refresh habit list + stats
     private fun refresh() {
         val all = store.getHabits()
         val doneToday = store.getCompleted(todayKey())
@@ -74,11 +81,9 @@ class HomeFragment : Fragment() {
 
         tvTodayCount.text = "$habitsDone Habits"
         tvStreak.text = "$streak Days"
-
-        updateMoodChart()
     }
 
-    // Calculate consecutive days where all habits were completed
+    //  Calculate streak
     private fun calcStreak(): Int {
         var streak = 0
         val cal = Calendar.getInstance()
@@ -93,41 +98,46 @@ class HomeFragment : Fragment() {
         return streak
     }
 
-    private fun setupMoodChart() {
-        moodChart.description.isEnabled = false
-        moodChart.axisRight.isEnabled = false
-        moodChart.axisLeft.axisMinimum = 0f
-        moodChart.axisLeft.axisMaximum = 100f
-        moodChart.legend.isEnabled = false
-        moodChart.xAxis.position = XAxis.XAxisPosition.BOTTOM
-        moodChart.xAxis.setDrawGridLines(false)
-    }
+    //  Setup chart
+    private fun setupCompletionChart() {
+        habitCompletionChart.description.isEnabled = false
+        habitCompletionChart.axisRight.isEnabled = false
+        habitCompletionChart.axisLeft.axisMinimum = 0f
+        habitCompletionChart.axisLeft.axisMaximum = 100f
+        habitCompletionChart.legend.isEnabled = false
+        habitCompletionChart.xAxis.position = XAxis.XAxisPosition.BOTTOM
+        habitCompletionChart.xAxis.setDrawGridLines(false)
 
-    private fun updateMoodChart() {
         val labels = listOf("Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun")
         val entries = mutableListOf<Entry>()
         for (i in labels.indices) {
-            entries.add(Entry(i.toFloat(), (50..100).random().toFloat()))
+            entries.add(Entry(i.toFloat(), (60..100).random().toFloat()))
         }
 
-        val set = LineDataSet(entries, "Mood Trend").apply {
-            color = resources.getColor(R.color.taskBlue, null)
+        val set = LineDataSet(entries, "Completion").apply {
+            color = resources.getColor(R.color.colorAccent, null)
             setDrawCircles(true)
+            circleRadius = 4f
             setDrawValues(false)
             mode = LineDataSet.Mode.CUBIC_BEZIER
+            lineWidth = 2f
+            fillAlpha = 80
+            setDrawFilled(true)
+            fillColor = resources.getColor(R.color.chartFill, null)
         }
 
-        moodChart.xAxis.valueFormatter = object : ValueFormatter() {
+        habitCompletionChart.xAxis.valueFormatter = object : ValueFormatter() {
             override fun getFormattedValue(value: Float): String {
                 val idx = value.toInt()
                 return labels.getOrElse(idx) { "" }
             }
         }
 
-        moodChart.data = LineData(set)
-        moodChart.invalidate()
+        habitCompletionChart.data = LineData(set)
+        habitCompletionChart.invalidate()
     }
 
+    //  Utility
     private fun todayKey(date: Date = Date()): String {
         val c = Calendar.getInstance()
         c.time = date
@@ -138,6 +148,7 @@ class HomeFragment : Fragment() {
         )
     }
 
+    //  Habit operations
     private fun toggleDone(h: Habit, done: Boolean) {
         val set = store.getCompleted(todayKey())
         if (done) set.add(h.id) else set.remove(h.id)
@@ -146,8 +157,11 @@ class HomeFragment : Fragment() {
     }
 
     private fun editHabit(h: Habit) {
-        val fragment = HabitsFragment()
-        fragment.showAddDialog(h)
+        // previously you had fragment.showAddDialog(h) which won't work
+        AddHabitDialog.show(requireContext()) {
+            Toast.makeText(requireContext(), "Habit updated!", Toast.LENGTH_SHORT).show()
+            refresh()
+        }
     }
 
     private fun deleteHabit(h: Habit) {

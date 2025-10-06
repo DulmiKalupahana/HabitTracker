@@ -1,10 +1,9 @@
 <?xml version="1.0" encoding="utf-8"?>
 <ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
-    xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
-    android:background="@color/colorSecondary"
+    android:background="@color/colorPrimary"
     android:padding="20dp">
 
     <LinearLayout
@@ -14,7 +13,7 @@
 
         <!-- Title -->
         <TextView
-            android:text="@string/create_new_habit"
+            android:text="Create New Habit"
             android:textStyle="bold"
             android:textSize="20sp"
             android:textColor="@color/textPrimary"
@@ -22,56 +21,25 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content" />
 
-        <!-- Task Name -->
+        <!-- Habit Name -->
         <EditText
             android:id="@+id/etTitle"
-            android:hint="@string/habit_name_hint"
+            android:hint="Habit Name"
             android:padding="14dp"
             android:background="@drawable/rounded_input_bg"
             android:textColor="@color/textPrimary"
             android:textColorHint="@color/textSecondary"
             android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            tools:ignore="TextContrastCheck" />
-
-        <!-- Icon Selection (Emojis) -->
-        <TextView
-            android:text="@string/select_icon"
-            android:textStyle="bold"
-            android:textColor="@color/textPrimary"
-            android:layout_marginTop="16dp"
-            android:layout_marginBottom="6dp"
-            android:layout_width="wrap_content"
             android:layout_height="wrap_content" />
-
-        <HorizontalScrollView
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:scrollbars="none">
-
-            <LinearLayout
-                android:id="@+id/iconRow"
-                android:orientation="horizontal"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:dividerPadding="8dp">
-
-                <TextView android:text="🎨" style="@style/IconChip" android:contentDescription="Art" />
-                <TextView android:text="🏈" style="@style/IconChip" android:contentDescription="Football" />
-                <TextView android:text="🏆" style="@style/IconChip" android:contentDescription="Trophy" />
-                <TextView android:text="🎯" style="@style/IconChip" android:contentDescription="Target" />
-                <TextView android:text="🏀" style="@style/IconChip" android:contentDescription="Basketball" />
-                <TextView android:text="🛹" style="@style/IconChip" android:contentDescription="Skating" />
-            </LinearLayout>
-        </HorizontalScrollView>
 
         <!-- Color Selection -->
         <TextView
             android:text="Color"
-            android:textSize="16sp"
             android:textStyle="bold"
+            android:textSize="16sp"
             android:textColor="@color/textPrimary"
-            android:layout_marginTop="16dp"
+            android:layout_marginTop="18dp"
+            android:layout_marginBottom="8dp"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content" />
 
@@ -82,144 +50,70 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content">
 
-            <View style="@style/Swatch" android:backgroundTint="@color/taskYellow" android:contentDescription="Yellow color" />
-            <View style="@style/Swatch" android:backgroundTint="@color/taskOrange" android:contentDescription="Orange color" />
-            <View style="@style/Swatch" android:backgroundTint="@color/taskPink" android:contentDescription="Pink color" />
-            <View style="@style/Swatch" android:backgroundTint="@color/taskBlue" android:contentDescription="Blue color" />
-            <View style="@style/Swatch" android:backgroundTint="@color/taskGreen" android:contentDescription="Green color" />
-            <View style="@style/Swatch" android:backgroundTint="@color/purple_200" android:contentDescription="Purple color" />
-            <View style="@style/Swatch" android:backgroundTint="#FFB0B0" android:contentDescription="Light red color" />
-            <View style="@style/Swatch" android:backgroundTint="#C9E7FF" android:contentDescription="Sky color" />
-            <View style="@style/Swatch" android:backgroundTint="#D9C4FF" android:contentDescription="Violet color" />
-            <View style="@style/Swatch" android:backgroundTint="#BDEBCC" android:contentDescription="Mint color" />
+            <View style="@style/Swatch" android:backgroundTint="@color/taskYellow" />
+            <View style="@style/Swatch" android:backgroundTint="@color/taskOrange" />
+            <View style="@style/Swatch" android:backgroundTint="@color/taskPink" />
+            <View style="@style/Swatch" android:backgroundTint="@color/taskBlue" />
+            <View style="@style/Swatch" android:backgroundTint="@color/taskGreen" />
+            <View style="@style/Swatch" android:backgroundTint="@color/taskPurple" />
         </GridLayout>
 
         <!-- Repeat -->
         <TextView
-            android:text="@string/repeat"
+            android:text="Repeat"
             android:textStyle="bold"
+            android:textSize="16sp"
             android:textColor="@color/textPrimary"
-            android:layout_marginTop="16dp"
-            android:layout_marginBottom="6dp"
+            android:layout_marginTop="18dp"
+            android:layout_marginBottom="8dp"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content" />
 
         <com.google.android.material.button.MaterialButtonToggleGroup
             android:id="@+id/tgRepeat"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            app:singleSelection="true">
-
-            <com.google.android.material.button.MaterialButton
-                android:id="@+id/btnDaily"
-                style="@style/TogglePill"
-                android:text="@string/daily"
-                android:minWidth="48dp"
-                android:minHeight="48dp" />
-
-            <com.google.android.material.button.MaterialButton
-                android:id="@+id/btnWeekly"
-                style="@style/TogglePill"
-                android:text="@string/weekly"
-                android:minWidth="48dp"
-                android:minHeight="48dp" />
-
-            <com.google.android.material.button.MaterialButton
-                android:id="@+id/btnMonthly"
-                style="@style/TogglePill"
-                android:text="@string/monthly"
-                android:minWidth="48dp"
-                android:minHeight="48dp" />
-        </com.google.android.material.button.MaterialButtonToggleGroup>
-
-        <!-- Do it at -->
-        <TextView
-            android:text="@string/do_it_at"
-            android:textStyle="bold"
-            android:textColor="@color/textPrimary"
-            android:layout_marginTop="16dp"
-            android:layout_marginBottom="6dp"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content" />
-
-        <com.google.android.material.button.MaterialButtonToggleGroup
-            android:id="@+id/tgPartOfDay"
             app:singleSelection="true"
             android:layout_width="match_parent"
             android:layout_height="wrap_content">
-
-            <com.google.android.material.button.MaterialButton
-                android:id="@+id/btnMorning"
-                style="@style/TogglePill"
-                android:text="@string/morning"
-                android:minWidth="48dp"
-                android:minHeight="48dp" />
-
-            <com.google.android.material.button.MaterialButton
-                android:id="@+id/btnAfternoon"
-                style="@style/TogglePill"
-                android:text="@string/afternoon"
-                android:minWidth="48dp"
-                android:minHeight="48dp" />
-
-            <com.google.android.material.button.MaterialButton
-                android:id="@+id/btnEvening"
-                style="@style/TogglePill"
-                android:text="@string/evening"
-                android:minWidth="48dp"
-                android:minHeight="48dp" />
+            <com.google.android.material.button.MaterialButton android:id="@+id/btnDaily" style="@style/TogglePill" android:text="Daily" />
+            <com.google.android.material.button.MaterialButton android:id="@+id/btnWeekly" style="@style/TogglePill" android:text="Weekly" />
+            <com.google.android.material.button.MaterialButton android:id="@+id/btnMonthly" style="@style/TogglePill" android:text="Monthly" />
         </com.google.android.material.button.MaterialButtonToggleGroup>
 
-        <!-- When -->
+        <!-- Date -->
         <TextView
-            android:text="@string/when_label"
+            android:text="When"
             android:textStyle="bold"
+            android:textSize="16sp"
             android:textColor="@color/textPrimary"
-            android:layout_marginTop="16dp"
-            android:layout_marginBottom="6dp"
+            android:layout_marginTop="18dp"
+            android:layout_marginBottom="8dp"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content" />
 
         <LinearLayout
             android:orientation="horizontal"
-            android:gravity="center_vertical"
             android:background="@drawable/rounded_input_bg"
             android:padding="12dp"
+            android:gravity="center_vertical"
             android:layout_width="match_parent"
             android:layout_height="wrap_content">
-
-            <ImageView
-                android:src="@android:drawable/ic_menu_today"
-                app:tint="@color/textPrimary"
-                android:layout_width="24dp"
-                android:layout_height="24dp" />
-
-            <TextView
-                android:id="@+id/tvDate"
-                android:text="Today, December 22, 2024"
-                android:textColor="@color/textPrimary"
-                android:layout_marginStart="8dp"
-                android:layout_width="0dp"
-                android:layout_height="wrap_content"
-                android:layout_weight="1" />
-
-            <ImageButton
-                android:id="@+id/btnPickDate"
-                android:src="@android:drawable/ic_menu_edit"
-                android:contentDescription="Pick date"
-                android:background="@android:color/transparent"
-                app:tint="@color/textPrimary"
-                android:layout_width="48dp"
-                android:layout_height="48dp" />
+            <ImageView android:src="@android:drawable/ic_menu_today" app:tint="@color/textPrimary"
+                android:layout_width="24dp" android:layout_height="24dp" />
+            <TextView android:id="@+id/tvDate" android:text="Today" android:textColor="@color/textPrimary"
+                android:layout_marginStart="8dp" android:layout_width="0dp" android:layout_weight="1" android:layout_height="wrap_content" />
+            <ImageButton android:id="@+id/btnPickDate" android:src="@android:drawable/ic_menu_edit"
+                android:background="@android:color/transparent" app:tint="@color/textPrimary"
+                android:layout_width="40dp" android:layout_height="40dp" />
         </LinearLayout>
 
         <!-- Reminder -->
         <TextView
-            android:text="@string/set_reminder"
+            android:text="Set Reminder"
             android:textStyle="bold"
+            android:textSize="16sp"
             android:textColor="@color/textPrimary"
-            android:layout_marginTop="16dp"
-            android:layout_marginBottom="6dp"
+            android:layout_marginTop="18dp"
+            android:layout_marginBottom="8dp"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content" />
 
@@ -228,89 +122,30 @@
             android:gravity="center_vertical"
             android:layout_width="match_parent"
             android:layout_height="wrap_content">
-
             <com.google.android.material.switchmaterial.SwitchMaterial
                 android:id="@+id/swReminder"
                 android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:checked="false" />
-
-            <TextView
-                android:id="@+id/tvTime"
-                android:text="07:00 AM"
-                android:textColor="@color/textSecondary"
-                android:layout_marginStart="16dp"
-                android:layout_width="wrap_content"
                 android:layout_height="wrap_content" />
+            <TextView android:id="@+id/tvTime" android:text="07:00 AM" android:textColor="@color/textSecondary"
+                android:layout_marginStart="12dp" android:layout_width="wrap_content" android:layout_height="wrap_content" />
         </LinearLayout>
 
-        <!-- End Habit -->
-        <TextView
-            android:text="@string/end_habit_on"
-            android:textStyle="bold"
-            android:textColor="@color/textPrimary"
-            android:layout_marginTop="16dp"
-            android:layout_marginBottom="6dp"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content" />
-
-        <com.google.android.material.button.MaterialButtonToggleGroup
-            android:id="@+id/tgEnd"
-            app:singleSelection="true"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content">
-
-            <com.google.android.material.button.MaterialButton
-                android:id="@+id/btnEndDate"
-                style="@style/TogglePill"
-                android:text="@string/date"
-                android:minWidth="48dp"
-                android:minHeight="48dp" />
-
-            <com.google.android.material.button.MaterialButton
-                android:id="@+id/btnEndDays"
-                style="@style/TogglePill"
-                android:text="@string/end_habit_after_days"
-                android:minWidth="48dp"
-                android:minHeight="48dp" />
-        </com.google.android.material.button.MaterialButtonToggleGroup>
-
-        <TextView
-            android:id="@+id/tvEndValue"
-            android:text="After 30 days"
-            android:textColor="@color/textSecondary"
-            android:layout_marginTop="8dp"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content" />
-
-        <!-- Save / Cancel -->
+        <!-- Buttons -->
         <LinearLayout
             android:orientation="horizontal"
             android:gravity="end"
+            android:layout_marginTop="24dp"
             android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_marginTop="18dp">
-
-            <Button
-                android:id="@+id/btnCancel"
-                android:text="@string/cancel"
-                android:backgroundTint="@color/taskPink"
-                android:textColor="@color/textPrimary"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:minWidth="48dp"
-                android:minHeight="48dp" />
-
-            <Button
-                android:id="@+id/btnSave"
-                android:text="@string/save"
+            android:layout_height="wrap_content">
+            <Button android:id="@+id/btnCancel" android:text="Cancel"
+                android:backgroundTint="@color/taskPink" android:textColor="@color/textPrimary"
+                android:layout_width="wrap_content" android:layout_height="wrap_content" />
+            <Button android:id="@+id/btnSave" android:text="Save"
                 android:layout_marginStart="8dp"
                 android:backgroundTint="@color/colorAccent"
-                android:textColor="@color/colorSecondary"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:minWidth="48dp"
-                android:minHeight="48dp" />
+                android:textColor="@color/textOnAccent"
+                android:layout_width="wrap_content" android:layout_height="wrap_content" />
         </LinearLayout>
+
     </LinearLayout>
 </ScrollView>
