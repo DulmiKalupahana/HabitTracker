@@ -46,12 +46,15 @@ class HabitsFragment : Fragment() {
         refresh()
     }
 
-    // 🔄 Refresh RecyclerView
+    //  Refresh RecyclerView
     private fun refresh() {
         adapter.submit(store.getHabits(), store.getCompleted(todayKey()))
+        val habits = store.getHabits()
+        adapter.submit(habits, store.getCompleted(todayKey()))
+        store.setHabitTotalForDay(todayKey(), habits.size)
     }
 
-    // ✏️ Edit Habit
+    //  Edit Habit
     private fun editHabit(h: Habit) {
         AddHabitDialog.show(requireContext()) {
             Toast.makeText(requireContext(), "Habit updated!", Toast.LENGTH_SHORT).show()
@@ -59,7 +62,7 @@ class HabitsFragment : Fragment() {
         }
     }
 
-    // ❌ Delete Habit
+    //  Delete Habit
     private fun deleteHabit(h: Habit) {
         val list = store.getHabits()
         list.removeAll { it.id == h.id }
@@ -70,7 +73,7 @@ class HabitsFragment : Fragment() {
         refresh()
     }
 
-    // ✅ Toggle complete
+    // Toggle complete
     private fun toggleDone(h: Habit, done: Boolean) {
         val set = store.getCompleted(todayKey())
         if (done) set.add(h.id) else set.remove(h.id)

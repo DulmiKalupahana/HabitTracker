@@ -10,7 +10,13 @@ data class Habit(
     var color: String? = null,
     var repeat: String? = "Daily",
     var date: String? = null,
-    var reminder: String? = null
+    var reminder: String? = null,
+    var reminderEnabled: Boolean = false,
+    var timeOfDay: String? = null,
+    var weeklyDays: List<Int> = emptyList(),
+    var monthlyDays: String? = null,
+    var endType: String? = null,
+    var endValue: String? = null
 )
 
 //  Moods

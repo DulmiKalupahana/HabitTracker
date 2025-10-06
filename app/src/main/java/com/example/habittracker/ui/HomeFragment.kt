@@ -4,19 +4,23 @@ import android.os.Bundle
 import android.view.*
 import android.widget.*
 import androidx.fragment.app.Fragment
+import androidx.navigation.fragment.findNavController
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
+import androidx.core.content.ContextCompat
 import com.example.habittracker.R
 import com.example.habittracker.data.Habit
+import com.example.habittracker.data.MoodEntry
 import com.example.habittracker.data.PrefStore
 import com.example.habittracker.data.todayKey
+import com.google.android.material.bottomnavigation.BottomNavigationView
 import com.google.android.material.floatingactionbutton.FloatingActionButton
+import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import com.github.mikephil.charting.charts.LineChart
 import com.github.mikephil.charting.components.XAxis
 import com.github.mikephil.charting.data.*
 import com.github.mikephil.charting.formatter.ValueFormatter
-import com.example.habittracker.ui.AddHabitDialog
-import android.widget.Toast
+import java.text.SimpleDateFormat
 import java.util.*
 
 class HomeFragment : Fragment() {
@@ -26,7 +30,15 @@ class HomeFragment : Fragment() {
     private lateinit var adapter: HabitAdapter
     private lateinit var tvStreak: TextView
     private lateinit var tvTodayCount: TextView
+    private lateinit var tvTodayMood: TextView
     private lateinit var habitCompletionChart: LineChart
+    private val moodOptions = listOf(
+        MoodOption("😎", "Great"),
+        MoodOption("😊", "Good"),
+        MoodOption("😐", "Okay"),
+        MoodOption("😢", "Not Good"),
+        MoodOption("😡", "Bad")
+    )
 
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?
@@ -37,6 +49,7 @@ class HomeFragment : Fragment() {
 
         tvStreak = view.findViewById(R.id.tvStreak)
         tvTodayCount = view.findViewById(R.id.tvTodayCount)
+        tvTodayMood = view.findViewById(R.id.tvTodayMood)
         habitCompletionChart = view.findViewById(R.id.habitCompletionChart)
 
         rv = view.findViewById(R.id.rvTodayHabits)
@@ -50,7 +63,6 @@ class HomeFragment : Fragment() {
             fabAddHabit.animate().scaleX(0.9f).scaleY(0.9f).setDuration(100).withEndAction {
                 fabAddHabit.animate().scaleX(1f).scaleY(1f).setDuration(100)
                 AddHabitDialog.show(requireContext()) {
-                    Toast.makeText(requireContext(), "Habit Added!", Toast.LENGTH_SHORT).show()
                     refresh()
                 }
             }
@@ -63,36 +75,105 @@ class HomeFragment : Fragment() {
 
         //  Mood button
         view.findViewById<Button>(R.id.btnQuickMood).setOnClickListener {
-            Toast.makeText(requireContext(), "Open mood dialog here!", Toast.LENGTH_SHORT).show()
+            showQuickMoodDialog()
+        }
+
+        view.findViewById<Button>(R.id.btnManageHabits).setOnClickListener {
+            val bottomNav = activity?.findViewById<BottomNavigationView>(R.id.bottomNav)
+            if (bottomNav != null) {
+                bottomNav.selectedItemId = R.id.habitsFragment
+            } else {
+                findNavController().navigate(R.id.habitsFragment)
+            }
         }
 
         setupCompletionChart()
         refresh()
     }
 
+    override fun onResume() {
+        super.onResume()
+        if (this::store.isInitialized) {
+            refresh()
+        }
+    }
+
+    private fun showQuickMoodDialog() {
+        if (moodOptions.isEmpty()) return
+
+        val todayKeyValue = todayKey()
+        val existing = store.getMoods().firstOrNull { entry ->
+            sameDay(entry.timestamp, todayKeyValue)
+        }
+
+        val optionLabels = moodOptions.map { "${it.emoji} ${it.label}" }.toTypedArray()
+        var selectedIndex = existing?.let { entry ->
+            moodOptions.indexOfFirst { it.matches(entry) }
+        } ?: 0
+        if (selectedIndex < 0) selectedIndex = 0
+        var currentSelection = selectedIndex
+
+        MaterialAlertDialogBuilder(requireContext())
+            .setTitle(getString(R.string.mood_prompt))
+            .setSingleChoiceItems(optionLabels, selectedIndex) { _, which ->
+                currentSelection = which
+            }
+            .setPositiveButton(getString(R.string.save)) { dialog, _ ->
+                val choice = moodOptions.getOrNull(currentSelection) ?: return@setPositiveButton
+                val updated = store.getMoods().filterNot { entry ->
+                    sameDay(entry.timestamp, todayKeyValue)
+                }.toMutableList()
+                updated.add(MoodEntry(System.currentTimeMillis(), choice.emoji, choice.label))
+                store.saveMoods(updated)
+                Toast.makeText(requireContext(), getString(R.string.mood_saved_today), Toast.LENGTH_SHORT).show()
+                dialog.dismiss()
+                refresh()
+            }
+            .setNegativeButton(getString(R.string.cancel), null)
+            .show()
+    }
+
+    private fun sameDay(timestamp: Long, key: String): Boolean {
+        return todayKey(Date(timestamp)) == key
+    }
+
+    private data class MoodOption(val emoji: String, val label: String) {
+        fun matches(entry: MoodEntry): Boolean = entry.emoji == emoji && entry.label == label
+    }
+
     //  Refresh habit list + stats
     private fun refresh() {
+        val todayKeyValue = todayKey()
         val all = store.getHabits()
-        val doneToday = store.getCompleted(todayKey())
+        val doneToday = store.getCompleted(todayKeyValue)
         adapter.submit(all, doneToday)
 
-        val habitsDone = doneToday.size
-        val streak = calcStreak()
+        store.setHabitTotalForDay(todayKeyValue, all.size)
 
-        tvTodayCount.text = "$habitsDone Habits"
-        tvStreak.text = "$streak Days"
+        val habitsDone = doneToday.size
+        val streak = calcStreak(all.size)
+
+        tvTodayCount.text = getString(R.string.home_habits_done, habitsDone)
+        tvStreak.text = getString(R.string.home_streak_days, streak)
+
+        updateTodayMood()
+        updateCompletionChart(all.size)
     }
 
     //  Calculate streak
-    private fun calcStreak(): Int {
+    private fun calcStreak(todayHabitCount: Int): Int {
         var streak = 0
         val cal = Calendar.getInstance()
         while (true) {
             val key = todayKey(cal.time)
-            val habits = store.getHabits()
+            val total = store.getHabitTotalForDay(key, todayHabitCount)
+            if (total <= 0) break
             val done = store.getCompleted(key)
-            val allDone = habits.isNotEmpty() && done.size == habits.size
-            if (allDone) streak++ else break
+            if (done.size >= total) {
+                streak++
+            } else {
+                break
+            }
             cal.add(Calendar.DAY_OF_YEAR, -1)
         }
         return streak
@@ -107,23 +188,49 @@ class HomeFragment : Fragment() {
         habitCompletionChart.legend.isEnabled = false
         habitCompletionChart.xAxis.position = XAxis.XAxisPosition.BOTTOM
         habitCompletionChart.xAxis.setDrawGridLines(false)
+        habitCompletionChart.xAxis.setDrawAxisLine(false)
+        habitCompletionChart.axisLeft.setDrawAxisLine(false)
+        habitCompletionChart.axisLeft.granularity = 20f
+        habitCompletionChart.axisLeft.setDrawGridLines(true)
+        habitCompletionChart.axisLeft.gridColor = ContextCompat.getColor(requireContext(), R.color.chartGrid)
+        val axisTextColor = ContextCompat.getColor(requireContext(), R.color.textSecondary)
+        habitCompletionChart.axisLeft.textColor = axisTextColor
+        habitCompletionChart.xAxis.textColor = axisTextColor
+        habitCompletionChart.xAxis.granularity = 1f
+        habitCompletionChart.setScaleEnabled(false)
+        habitCompletionChart.setNoDataText(getString(R.string.home_chart_empty))
+    }
 
-        val labels = listOf("Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun")
+    private fun updateCompletionChart(todayHabitCount: Int) {
+        val formatter = SimpleDateFormat("EEE", Locale.getDefault())
+        val cal = Calendar.getInstance()
+        cal.add(Calendar.DAY_OF_YEAR, -6)
+
         val entries = mutableListOf<Entry>()
-        for (i in labels.indices) {
-            entries.add(Entry(i.toFloat(), (60..100).random().toFloat()))
+        val labels = mutableListOf<String>()
+
+        for (index in 0..6) {
+            val date = cal.time
+            val key = todayKey(date)
+            val total = store.getHabitTotalForDay(key, todayHabitCount)
+            val done = store.getCompleted(key).size
+            val percentage = if (total <= 0) 0f else (minOf(done, total) * 100f) / total
+            entries.add(Entry(index.toFloat(), percentage))
+            labels.add(formatter.format(date))
+            cal.add(Calendar.DAY_OF_YEAR, 1)
         }
 
-        val set = LineDataSet(entries, "Completion").apply {
-            color = resources.getColor(R.color.colorAccent, null)
+        val dataSet = LineDataSet(entries, getString(R.string.home_chart_label)).apply {
+            color = ContextCompat.getColor(requireContext(), R.color.chartLine)
             setDrawCircles(true)
-            circleRadius = 4f
+            circleRadius = 5f
             setDrawValues(false)
             mode = LineDataSet.Mode.CUBIC_BEZIER
-            lineWidth = 2f
-            fillAlpha = 80
+            lineWidth = 2.5f
             setDrawFilled(true)
-            fillColor = resources.getColor(R.color.chartFill, null)
+            fillColor = ContextCompat.getColor(requireContext(), R.color.chartFill)
+            setCircleColor(ContextCompat.getColor(requireContext(), R.color.chartPoint))
+            circleHoleColor = ContextCompat.getColor(requireContext(), R.color.colorPrimary)
         }
 
         habitCompletionChart.xAxis.valueFormatter = object : ValueFormatter() {
@@ -133,19 +240,26 @@ class HomeFragment : Fragment() {
             }
         }
 
-        habitCompletionChart.data = LineData(set)
+        habitCompletionChart.data = LineData(dataSet)
+        habitCompletionChart.animateY(600)
         habitCompletionChart.invalidate()
     }
 
-    //  Utility
-    private fun todayKey(date: Date = Date()): String {
-        val c = Calendar.getInstance()
-        c.time = date
-        return String.format("%04d-%02d-%02d",
-            c.get(Calendar.YEAR),
-            c.get(Calendar.MONTH) + 1,
-            c.get(Calendar.DAY_OF_MONTH)
-        )
+    private fun updateTodayMood() {
+        val todayKeyValue = todayKey()
+        val todayMood = store.getMoods().firstOrNull { entry ->
+            sameDay(entry.timestamp, todayKeyValue)
+        }
+
+        if (todayMood != null) {
+            tvTodayMood.text = getString(R.string.home_today_mood, todayMood.emoji, todayMood.label)
+            tvTodayMood.isActivated = true
+            tvTodayMood.setTextColor(ContextCompat.getColor(requireContext(), R.color.textOnAccent))
+        } else {
+            tvTodayMood.text = getString(R.string.home_today_mood_empty)
+            tvTodayMood.isActivated = false
+            tvTodayMood.setTextColor(ContextCompat.getColor(requireContext(), R.color.textSecondary))
+        }
     }
 
     //  Habit operations
@@ -159,7 +273,6 @@ class HomeFragment : Fragment() {
     private fun editHabit(h: Habit) {
         // previously you had fragment.showAddDialog(h) which won't work
         AddHabitDialog.show(requireContext()) {
-            Toast.makeText(requireContext(), "Habit updated!", Toast.LENGTH_SHORT).show()
             refresh()
         }
     }
@@ -171,6 +284,7 @@ class HomeFragment : Fragment() {
         val set = store.getCompleted(todayKey())
         set.remove(h.id)
         store.setCompleted(todayKey(), set)
+        Toast.makeText(requireContext(), getString(R.string.habit_deleted_success), Toast.LENGTH_SHORT).show()
         refresh()
     }
 }

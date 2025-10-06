@@ -3,23 +3,31 @@ package com.example.habittracker.ui
 import android.os.Bundle
 import android.view.*
 import android.widget.*
+import androidx.core.content.ContextCompat
+import androidx.core.view.children
 import androidx.fragment.app.Fragment
 import com.example.habittracker.R
 import com.example.habittracker.data.MoodEntry
+import com.example.habittracker.data.PrefStore
 import com.google.android.material.bottomsheet.BottomSheetDialog
-import com.google.gson.Gson
-import com.google.gson.reflect.TypeToken
 import java.text.SimpleDateFormat
 import java.util.*
-import androidx.core.view.children
 
 // Fragment for mood journal with calendar view and emoji selector
 class MoodFragment : Fragment() {
 
-    private lateinit var prefs: android.content.SharedPreferences
-    private val gson = Gson()
-    private val dateFormat = SimpleDateFormat("yyyy-MM-dd", Locale.getDefault())
+    private lateinit var store: PrefStore
     private var currentMonth: Calendar = Calendar.getInstance()
+    private lateinit var calendarGrid: GridView
+    private lateinit var monthTitle: TextView
+    private lateinit var infoText: TextView
+
+    private data class DayCell(
+        val day: Int?,
+        val calendar: Calendar?,
+        val emoji: String?,
+        val label: String?
+    )
 
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?
@@ -28,71 +36,86 @@ class MoodFragment : Fragment() {
     }
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
-        prefs = requireContext().getSharedPreferences("moods", 0)
-        val grid = view.findViewById<GridView>(R.id.calendarGrid)
-        val monthTv = view.findViewById<TextView>(R.id.tvMonth)
-        val tvInfo = view.findViewById<TextView>(R.id.tvMoodInfo)
+        store = PrefStore(requireContext())
+        calendarGrid = view.findViewById(R.id.calendarGrid)
+        monthTitle = view.findViewById(R.id.tvMonth)
+        infoText = view.findViewById(R.id.tvMoodInfo)
         val btnPrev = view.findViewById<ImageButton>(R.id.btnPrevMonth)
         val btnNext = view.findViewById<ImageButton>(R.id.btnNextMonth)
 
-        loadMonth(grid, monthTv, tvInfo)
+        loadMonth()
 
         btnPrev.setOnClickListener {
             currentMonth.add(Calendar.MONTH, -1)
-            loadMonth(grid, monthTv, tvInfo)
+            loadMonth()
         }
         btnNext.setOnClickListener {
             currentMonth.add(Calendar.MONTH, 1)
-            loadMonth(grid, monthTv, tvInfo)
+            loadMonth()
         }
     }
 
     // Retrieve mood entries from SharedPreferences
     private fun getMoodList(): MutableList<MoodEntry> {
-        val json = prefs.getString("moodList", "[]")
-        val type = object : TypeToken<MutableList<MoodEntry>>() {}.type
-        return gson.fromJson(json, type)
+        return store.getMoods()
     }
 
     private fun saveMoodList(list: List<MoodEntry>) {
-        prefs.edit().putString("moodList", gson.toJson(list)).apply()
+        store.saveMoods(list)
     }
 
     // Load and display mood calendar for the current month
-    private fun loadMonth(grid: GridView, tvMonth: TextView, tvInfo: TextView) {
+    private fun loadMonth() {
+        currentMonth.set(Calendar.DAY_OF_MONTH, 1)
         val list = getMoodList()
-        val days = mutableListOf<Triple<Int, String?, String?>>()
         val month = currentMonth.get(Calendar.MONTH)
         val year = currentMonth.get(Calendar.YEAR)
-        tvMonth.text = SimpleDateFormat("MMMM yyyy", Locale.getDefault()).format(currentMonth.time)
+        monthTitle.text = SimpleDateFormat("MMMM yyyy", Locale.getDefault()).format(currentMonth.time)
 
-        val totalDays = currentMonth.getActualMaximum(Calendar.DAY_OF_MONTH)
-        for (i in 1..totalDays) {
-            val key = "$year-${String.format("%02d", month + 1)}-${String.format("%02d", i)}"
-            val entry = list.find { dateFormat.format(Date(it.timestamp)) == key }
-            days.add(Triple(i, entry?.emoji, entry?.label))
-        }
+        val cells = buildCells(list, year, month)
 
-        grid.adapter = object : BaseAdapter() {
-            override fun getCount() = days.size
-            override fun getItem(pos: Int) = days[pos]
+        calendarGrid.adapter = object : BaseAdapter() {
+            override fun getCount() = cells.size
+            override fun getItem(pos: Int) = cells[pos]
             override fun getItemId(pos: Int) = pos.toLong()
-            override fun getView(pos: Int, cv: View?, parent: ViewGroup?): View {
-                val v = layoutInflater.inflate(R.layout.item_day, parent, false)
-                val (day, emoji, label) = days[pos]
-                v.findViewById<TextView>(R.id.tvDayNum).text = day.toString()
-                v.findViewById<TextView>(R.id.tvEmoji).text = emoji ?: ""
-                v.findViewById<TextView>(R.id.tvMoodLabel).text = label ?: ""
+            override fun getView(pos: Int, convertView: View?, parent: ViewGroup?): View {
+                val view = convertView ?: layoutInflater.inflate(R.layout.item_day, parent, false)
+                val cell = cells[pos]
 
-                v.setOnClickListener {
-                    val selectedDate = Calendar.getInstance().apply {
-                        set(year, month, day)
+                val dayNum = view.findViewById<TextView>(R.id.tvDayNum)
+                val emojiView = view.findViewById<TextView>(R.id.tvEmoji)
+                val labelView = view.findViewById<TextView>(R.id.tvMoodLabel)
+
+                if (cell.calendar == null || cell.day == null) {
+                    dayNum.text = ""
+                    emojiView.text = ""
+                    labelView.text = ""
+                    view.background = null
+                    view.isSelected = false
+                    view.isEnabled = false
+                    view.isClickable = false
+                    view.visibility = View.INVISIBLE
+                    view.setOnClickListener(null)
+                } else {
+                    dayNum.text = cell.day.toString()
+                    emojiView.text = cell.emoji ?: ""
+                    labelView.text = cell.label ?: ""
+                    view.visibility = View.VISIBLE
+                    view.isEnabled = true
+                    view.isClickable = true
+                    view.background = ContextCompat.getDrawable(requireContext(), R.drawable.day_bg_selector)
+                    val isToday = isSameDay(cell.calendar.timeInMillis, System.currentTimeMillis())
+                    view.isSelected = isToday
+                    view.setOnClickListener {
+                        showMoodPicker(cell.calendar, infoText)
                     }
-                    showMoodPicker(selectedDate, tvInfo)
                 }
-                return v
+
+                return view
             }
         }
+
+        updateTodayMessage(list)
     }
 
     // Show bottom sheet dialog for adding/editing mood with emoji selector
@@ -123,10 +146,21 @@ class MoodFragment : Fragment() {
         if (existing != null) {
             saveBtn.visibility = View.GONE
             actionRow.visibility = View.VISIBLE
+            selectedEmoji = existing.emoji to existing.label
         } else {
             saveBtn.visibility = View.VISIBLE
             actionRow.visibility = View.GONE
         }
+
+        val formattedDate = SimpleDateFormat("MMM d, yyyy", Locale.getDefault()).format(selectedDate.time)
+        tvInfo.text = existing?.let {
+            getString(R.string.mood_selected_summary, formattedDate, it.emoji, it.label)
+        } ?: getString(R.string.no_mood_recorded, formattedDate)
+
+        val unselectedBg = ContextCompat.getDrawable(requireContext(), R.drawable.mood_card_unselected)
+        val selectedBg = ContextCompat.getDrawable(requireContext(), R.drawable.mood_card_selected)
+        val labelDefaultColor = ContextCompat.getColor(requireContext(), R.color.textPrimary)
+        val labelSelectedColor = ContextCompat.getColor(requireContext(), android.R.color.white)
 
         // Create emoji cards
         moods.forEach { (emoji, label) ->
@@ -134,7 +168,7 @@ class MoodFragment : Fragment() {
                 orientation = LinearLayout.VERTICAL
                 gravity = Gravity.CENTER
                 setPadding(16, 16, 16, 16)
-                background = resources.getDrawable(R.drawable.mood_card_unselected, null)
+                background = unselectedBg?.constantState?.newDrawable()
 
                 val emojiText = TextView(context).apply {
                     text = emoji
@@ -146,7 +180,7 @@ class MoodFragment : Fragment() {
                     text = label
                     textSize = 14f
                     gravity = Gravity.CENTER
-                    setTextColor(resources.getColor(R.color.textPrimary, null))
+                    setTextColor(labelDefaultColor)
                 }
 
                 addView(emojiText)
@@ -154,22 +188,29 @@ class MoodFragment : Fragment() {
 
                 // Preselect current mood
                 if (existing != null && existing.emoji == emoji) {
-                    setBackgroundResource(R.drawable.mood_card_selected)
-                    labelText.setTextColor(resources.getColor(android.R.color.white, null))
+                    background = selectedBg?.constantState?.newDrawable()
+                    labelText.setTextColor(labelSelectedColor)
                     selectedEmoji = emoji to label
                 }
 
                 setOnClickListener {
                     selectedEmoji = emoji to label
                     for (child in emojiGrid.children) {
-                        child.setBackgroundResource(R.drawable.mood_card_unselected)
+                        child.background = unselectedBg?.constantState?.newDrawable()
                         val lbl = (child as LinearLayout).getChildAt(1) as TextView
-                        lbl.setTextColor(resources.getColor(R.color.textPrimary, null))
+                        lbl.setTextColor(labelDefaultColor)
                     }
-                    setBackgroundResource(R.drawable.mood_card_selected)
-                    labelText.setTextColor(resources.getColor(android.R.color.white, null))
+                    background = selectedBg?.constantState?.newDrawable()
+                    labelText.setTextColor(labelSelectedColor)
                 }
             }
+            val params = GridLayout.LayoutParams().apply {
+                width = 0
+                height = GridLayout.LayoutParams.WRAP_CONTENT
+                columnSpec = GridLayout.spec(GridLayout.UNDEFINED, 1f)
+                setMargins(12, 12, 12, 12)
+            }
+            emojiCard.layoutParams = params
             emojiGrid.addView(emojiCard)
         }
 
@@ -180,11 +221,7 @@ class MoodFragment : Fragment() {
                 list.removeAll { isSameDay(it.timestamp, selectedDate.timeInMillis) }
                 list.add(MoodEntry(selectedDate.timeInMillis, emoji, label))
                 saveMoodList(list)
-                loadMonth(
-                    requireView().findViewById(R.id.calendarGrid),
-                    requireView().findViewById(R.id.tvMonth),
-                    tvInfo
-                )
+                loadMonth()
                 dialog.dismiss()
                 Toast.makeText(requireContext(), "Mood added", Toast.LENGTH_SHORT).show()
             }
@@ -197,11 +234,7 @@ class MoodFragment : Fragment() {
                 list.removeAll { isSameDay(it.timestamp, selectedDate.timeInMillis) }
                 list.add(MoodEntry(selectedDate.timeInMillis, emoji, label))
                 saveMoodList(list)
-                loadMonth(
-                    requireView().findViewById(R.id.calendarGrid),
-                    requireView().findViewById(R.id.tvMonth),
-                    tvInfo
-                )
+                loadMonth()
                 dialog.dismiss()
                 Toast.makeText(requireContext(), "Mood updated", Toast.LENGTH_SHORT).show()
             }
@@ -212,11 +245,7 @@ class MoodFragment : Fragment() {
             val list = getMoodList()
             list.removeAll { isSameDay(it.timestamp, selectedDate.timeInMillis) }
             saveMoodList(list)
-            loadMonth(
-                requireView().findViewById(R.id.calendarGrid),
-                requireView().findViewById(R.id.tvMonth),
-                tvInfo
-            )
+            loadMonth()
             dialog.dismiss()
             Toast.makeText(requireContext(), "Mood deleted", Toast.LENGTH_SHORT).show()
         }
@@ -227,5 +256,52 @@ class MoodFragment : Fragment() {
     private fun isSameDay(t1: Long, t2: Long): Boolean {
         val fmt = SimpleDateFormat("yyyyMMdd", Locale.getDefault())
         return fmt.format(Date(t1)) == fmt.format(Date(t2))
+    }
+
+    private fun buildCells(list: List<MoodEntry>, year: Int, month: Int): List<DayCell> {
+        val firstDay = Calendar.getInstance().apply {
+            set(Calendar.YEAR, year)
+            set(Calendar.MONTH, month)
+            set(Calendar.DAY_OF_MONTH, 1)
+            set(Calendar.HOUR_OF_DAY, 0)
+            set(Calendar.MINUTE, 0)
+            set(Calendar.SECOND, 0)
+            set(Calendar.MILLISECOND, 0)
+        }
+        val startOffset = (firstDay.get(Calendar.DAY_OF_WEEK) + 5) % 7
+
+        val cells = mutableListOf<DayCell>()
+        repeat(startOffset) {
+            cells.add(DayCell(null, null, null, null))
+        }
+
+        val totalDays = currentMonth.getActualMaximum(Calendar.DAY_OF_MONTH)
+        for (day in 1..totalDays) {
+            val cal = Calendar.getInstance().apply {
+                set(Calendar.YEAR, year)
+                set(Calendar.MONTH, month)
+                set(Calendar.DAY_OF_MONTH, day)
+                set(Calendar.HOUR_OF_DAY, 0)
+                set(Calendar.MINUTE, 0)
+                set(Calendar.SECOND, 0)
+                set(Calendar.MILLISECOND, 0)
+            }
+            val entry = list.find { isSameDay(it.timestamp, cal.timeInMillis) }
+            cells.add(DayCell(day, cal, entry?.emoji, entry?.label))
+        }
+
+        val trailing = (7 - (cells.size % 7)) % 7
+        repeat(trailing) {
+            cells.add(DayCell(null, null, null, null))
+        }
+
+        return cells
+    }
+
+    private fun updateTodayMessage(list: List<MoodEntry>) {
+        val today = list.find { isSameDay(it.timestamp, System.currentTimeMillis()) }
+        infoText.text = today?.let {
+            getString(R.string.mood_today_summary_text, it.emoji, it.label)
+        } ?: getString(R.string.mood_today_empty_text)
     }
 }

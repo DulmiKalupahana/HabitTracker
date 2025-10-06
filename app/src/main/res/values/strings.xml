@@ -17,6 +17,14 @@
     <string name="morning">Morning</string>
     <string name="afternoon">Afternoon</string>
     <string name="evening">Evening</string>
+    <string name="home_habits_done">%1$d Habits</string>
+    <string name="home_streak_days">%1$d Days</string>
+    <string name="home_today_mood_empty">No mood tracked yet</string>
+    <string name="home_today_mood">Today: %1$s %2$s</string>
+    <string name="home_chart_empty">No habit progress yet</string>
+    <string name="home_chart_label">Completion</string>
+    <string name="home_habits_card_title">Habits</string>
+    <string name="home_manage_habits">Manage Habits</string>
 
     <!-- Mood Fragment -->
     <string name="mood_journal_title">Mood Journal</string>
@@ -40,6 +48,10 @@
     <string name="share_mood_summary">Share mood summary</string>
     <string name="mood_prompt">How is your mood today?</string>
     <string name="btn_add_mood">Add</string>
+    <string name="mood_saved_today">Mood saved for today!</string>
+    <string name="mood_today_summary_text">Today: %1$s %2$s</string>
+    <string name="mood_today_empty_text">Tap a date to add or view your mood</string>
+    <string name="mood_selected_summary">%1$s: %2$s %3$s</string>
 
     <!-- Habits Fragment -->
     <string name="habits_title">My Habits</string>
@@ -65,12 +77,17 @@
     <string name="daily">Daily</string>
     <string name="monthly">Monthly</string>
     <string name="do_it_at">Do it at:</string>
+    <string name="on_these_days">On these days</string>
+    <string name="monthly_repeat_helper">Separate days with commas (e.g., 3, 8, 13, 22)</string>
+    <string name="monthly_repeat_hint">Days of month</string>
     <string name="set_reminder">Set Reminder</string>
     <string name="when_label">When</string>
     <string name="end_habit_on">End Habit on</string>
     <string name="end_habit_after_days">After days</string>
     <string name="save_habit">Save Habit</string>
     <string name="date">Date</string>
+    <string name="no_end_date">No end date</string>
+    <string name="end_days_hint">Number of days</string>
 
     <!-- Hydration Reminder -->
     <string name="hydration_reminder">Hydration Reminder (minutes)</string>

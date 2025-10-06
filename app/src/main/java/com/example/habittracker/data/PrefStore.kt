@@ -42,6 +42,18 @@ class PrefStore(ctx: Context) {
         return gson.fromJson(json, type)
     }
 
+    // Persist how many habits existed for a day so charts & streaks use real totals
+    fun setHabitTotalForDay(dateKey: String, total: Int) {
+        sp.edit().putInt("total_$dateKey", total).apply()
+    }
+
+    fun getHabitTotalForDay(dateKey: String, fallback: Int? = null): Int {
+        if (!sp.contains("total_$dateKey")) {
+            return fallback ?: getHabits().size
+        }
+        return sp.getInt("total_$dateKey", fallback ?: getHabits().size)
+    }
+
     // Store hydration reminder interval in minutes
     fun setInterval(mins: Int) = sp.edit().putInt("hydration_mins", mins).apply()
     fun getInterval(): Int = sp.getInt("hydration_mins", 0)

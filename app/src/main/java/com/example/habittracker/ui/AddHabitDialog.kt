@@ -4,65 +4,96 @@ import android.app.*
 import android.content.Context
 import android.view.LayoutInflater
 import android.view.View
-import android.widget.EditText
-import android.widget.GridLayout
-import android.widget.TextView
-import android.widget.Toast
+import android.widget.*
 import com.example.habittracker.R
 import com.example.habittracker.data.Habit
 import com.example.habittracker.data.PrefStore
+import com.google.android.material.button.MaterialButtonToggleGroup
 import com.google.android.material.switchmaterial.SwitchMaterial
 import java.util.*
 
-// Dialog for adding new habits with title input
 object AddHabitDialog {
 
-    fun show(context: Context, onAdded: (() -> Unit)? = null) {
+    fun show(
+        context: Context,
+        existingHabit: Habit? = null,
+        onAddedOrUpdated: (() -> Unit)? = null
+    ) {
         val store = PrefStore(context)
         val v: View = LayoutInflater.from(context).inflate(R.layout.dialog_add_habit, null)
 
+        // UI
         val etTitle = v.findViewById<EditText>(R.id.etTitle)
-        val dateTv = v.findViewById<TextView>(R.id.tvDate)
-        val timeTv = v.findViewById<TextView>(R.id.tvTime)
+        val tgRepeat = v.findViewById<MaterialButtonToggleGroup>(R.id.tgRepeat)
+        val layoutDaily = v.findViewById<LinearLayout>(R.id.layoutDaily)
+        val layoutWeekly = v.findViewById<LinearLayout>(R.id.layoutWeekly)
+        val layoutMonthly = v.findViewById<LinearLayout>(R.id.layoutMonthly)
+        val tvHabitDate = v.findViewById<TextView>(R.id.tvHabitDate)
+        val tvTime = v.findViewById<TextView>(R.id.tvTime)
         val swReminder = v.findViewById<SwitchMaterial>(R.id.swReminder)
-        var selectedColor = "#8B88F8"
-        var repeat = "Daily"
-        var dateStr = dateTv.text.toString()
-        var timeStr = timeTv.text.toString()
+        val btnSave = v.findViewById<View>(R.id.btnSave)
+        val btnCancel = v.findViewById<View>(R.id.btnCancel)
+        val cbAllDay = v.findViewById<CheckBox>(R.id.cbAllDay)
 
-        // Color selection
-        val colorGrid = v.findViewById<GridLayout>(R.id.colorGrid)
-        for (i in 0 until colorGrid.childCount) {
-            val swatch = colorGrid.getChildAt(i)
-            swatch.setOnClickListener {
-                selectedColor = String.format(
-                    "#%06X",
-                    0xFFFFFF and (swatch.backgroundTintList?.defaultColor ?: 0)
-                )
-                for (j in 0 until colorGrid.childCount)
-                    colorGrid.getChildAt(j).scaleX = 1f
-                swatch.scaleX = 1.2f
-                swatch.scaleY = 1.2f
+        // Default values
+        var repeat = "Daily"
+        var dateStr = tvHabitDate.text.toString()
+        var timeStr = tvTime.text.toString()
+
+        // --- EDIT MODE PREFILL ---
+        if (existingHabit != null) {
+            etTitle.setText(existingHabit.title ?: "")
+            tvHabitDate.text = existingHabit.date ?: ""
+            swReminder.isChecked = existingHabit.reminder != null
+            tvTime.text = existingHabit.reminder ?: ""
+            repeat = existingHabit.repeat ?: "Daily"
+            v.findViewById<TextView>(R.id.tvDialogTitle).text = "Edit Habit"
+
+            (btnSave as Button).text = "Update"
+
+            when (repeat) {
+                "Daily" -> tgRepeat.check(R.id.btnRepeatDaily)
+                "Weekly" -> tgRepeat.check(R.id.btnRepeatWeekly)
+                "Monthly" -> tgRepeat.check(R.id.btnRepeatMonthly)
             }
+
+            layoutDaily.visibility = if (repeat == "Daily") View.VISIBLE else View.GONE
+            layoutWeekly.visibility = if (repeat == "Weekly") View.VISIBLE else View.GONE
+            layoutMonthly.visibility = if (repeat == "Monthly") View.VISIBLE else View.GONE
         }
 
-        // Repeat selection
-        val tgRepeat = v.findViewById<com.google.android.material.button.MaterialButtonToggleGroup>(R.id.tgRepeat)
+        // --- SWITCH LAYOUTS ---
         tgRepeat.addOnButtonCheckedListener { _, checkedId, _ ->
+            layoutDaily.visibility = View.GONE
+            layoutWeekly.visibility = View.GONE
+            layoutMonthly.visibility = View.GONE
+
             repeat = when (checkedId) {
-                R.id.btnDaily -> "Daily"
-                R.id.btnWeekly -> "Weekly"
-                R.id.btnMonthly -> "Monthly"
+                R.id.btnRepeatDaily -> {
+                    layoutDaily.visibility = View.VISIBLE
+                    "Daily"
+                }
+                R.id.btnRepeatWeekly -> {
+                    layoutWeekly.visibility = View.VISIBLE
+                    "Weekly"
+                }
+                R.id.btnRepeatMonthly -> {
+                    layoutMonthly.visibility = View.VISIBLE
+                    "Monthly"
+                }
                 else -> "Daily"
             }
         }
 
-        // Date picker
-        v.findViewById<View>(R.id.btnPickDate).setOnClickListener {
+        // --- DATE PICKER ---
+        v.findViewById<View>(R.id.btnPickHabitDate).setOnClickListener {
             val c = Calendar.getInstance()
             val dp = DatePickerDialog(
                 context,
-                { _, y, m, d -> dateStr = "$d/${m + 1}/$y"; dateTv.text = dateStr },
+                { _, y, m, d ->
+                    dateStr = "$d/${m + 1}/$y"
+                    tvHabitDate.text = dateStr
+                },
                 c.get(Calendar.YEAR),
                 c.get(Calendar.MONTH),
                 c.get(Calendar.DAY_OF_MONTH)
@@ -70,14 +101,14 @@ object AddHabitDialog {
             dp.show()
         }
 
-        // Time picker
-        timeTv.setOnClickListener {
+        // --- TIME PICKER ---
+        tvTime.setOnClickListener {
             val c = Calendar.getInstance()
             val tp = TimePickerDialog(
                 context,
                 { _, h, m ->
-                    timeStr = String.format("%02d:%02d", h, m)
-                    timeTv.text = timeStr
+                    timeStr = String.format(Locale.getDefault(), "%02d:%02d", h, m)
+                    tvTime.text = timeStr
                 },
                 c.get(Calendar.HOUR_OF_DAY),
                 c.get(Calendar.MINUTE),
@@ -86,36 +117,45 @@ object AddHabitDialog {
             tp.show()
         }
 
-        // Dialog
+        // --- DIALOG ---
         val dlg = AlertDialog.Builder(context)
             .setView(v)
             .create()
 
-        v.findViewById<View>(R.id.btnCancel).setOnClickListener { dlg.dismiss() }
+        // Cancel
+        btnCancel.setOnClickListener { dlg.dismiss() }
 
-        v.findViewById<View>(R.id.btnSave).setOnClickListener {
+        // --- SAVE / UPDATE ---
+        btnSave.setOnClickListener {
             val title = etTitle.text.toString().trim()
             if (title.isEmpty()) {
                 etTitle.error = "Required"
                 return@setOnClickListener
             }
 
-            val habit = Habit(
-                id = UUID.randomUUID().toString(),
+            val newHabit = Habit(
+                id = existingHabit?.id ?: UUID.randomUUID().toString(),
                 title = title,
-                color = selectedColor,
+                color = existingHabit?.color ?: "#8B88F8",
                 repeat = repeat,
                 date = dateStr,
                 reminder = if (swReminder.isChecked) timeStr else null
             )
 
             val list = store.getHabits()
-            list.add(habit)
-            store.saveHabits(list)
 
-            Toast.makeText(context, "Habit Added!", Toast.LENGTH_SHORT).show()
+            if (existingHabit != null) {
+                val index = list.indexOfFirst { it.id == existingHabit.id }
+                if (index != -1) list[index] = newHabit
+                Toast.makeText(context, "Habit Updated!", Toast.LENGTH_SHORT).show()
+            } else {
+                list.add(newHabit)
+                Toast.makeText(context, "Habit Added!", Toast.LENGTH_SHORT).show()
+            }
+
+            store.saveHabits(list)
             dlg.dismiss()
-            onAdded?.invoke()
+            onAddedOrUpdated?.invoke()
         }
 
         dlg.show()
