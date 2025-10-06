@@ -9,7 +9,10 @@ import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
 import androidx.navigation.fragment.NavHostFragment
 import androidx.navigation.ui.setupWithNavController
+import com.example.habittracker.data.PrefStore
 import com.example.habittracker.databinding.ActivityMainBinding
+import com.example.habittracker.notify.HabitReminderScheduler
+import com.example.habittracker.notify.HydrationScheduler
 import com.google.android.material.bottomnavigation.BottomNavigationView
 
 class MainActivity : AppCompatActivity() {
@@ -45,5 +48,14 @@ class MainActivity : AppCompatActivity() {
 
         val bottomNav = findViewById<BottomNavigationView>(R.id.bottomNav)
         bottomNav.setupWithNavController(navController)
+
+        val store = PrefStore(this)
+        val hydrationInterval = store.getInterval()
+        if (store.isHydrationOn() && hydrationInterval > 0) {
+            HydrationScheduler.start(this, hydrationInterval)
+        }
+        store.getHabits()
+            .filter { it.reminderEnabled && !it.reminder.isNullOrEmpty() }
+            .forEach { HabitReminderScheduler.schedule(this, it) }
     }
 }

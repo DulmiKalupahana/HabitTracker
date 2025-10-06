@@ -153,8 +153,17 @@
                             android:layout_height="wrap_content"
                             android:layout_marginTop="6dp"
                             android:backgroundTint="@color/colorAccent"
-                            android:text="Set Reminder"
+                            android:text="@string/hydration_button_set"
                             android:textColor="@color/textOnAccent"/>
+
+                        <TextView
+                            android:id="@+id/tvWaterStatus"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:layout_marginTop="8dp"
+                            android:text="@string/home_hydration_status_off"
+                            android:textColor="@color/textSecondary"
+                            android:textSize="12sp"/>
 
                     </LinearLayout>
                 </com.google.android.material.card.MaterialCardView>

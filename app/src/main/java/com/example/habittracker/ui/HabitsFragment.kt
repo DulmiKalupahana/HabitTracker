@@ -1,8 +1,13 @@
 package com.example.habittracker.ui
 
 import android.os.Bundle
-import android.view.*
-import android.widget.*
+import android.view.LayoutInflater
+import android.view.View
+import android.view.ViewGroup
+import android.widget.CheckBox
+import android.widget.ImageButton
+import android.widget.TextView
+import android.widget.Toast
 import androidx.fragment.app.Fragment
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
@@ -11,8 +16,7 @@ import com.example.habittracker.data.Habit
 import com.example.habittracker.data.PrefStore
 import com.example.habittracker.data.todayKey
 import com.google.android.material.floatingactionbutton.FloatingActionButton
-import android.widget.Toast
-import java.util.*
+import com.example.habittracker.notify.HabitReminderScheduler
 
 class HabitsFragment : Fragment() {
 
@@ -48,15 +52,15 @@ class HabitsFragment : Fragment() {
 
     //  Refresh RecyclerView
     private fun refresh() {
-        adapter.submit(store.getHabits(), store.getCompleted(todayKey()))
         val habits = store.getHabits()
-        adapter.submit(habits, store.getCompleted(todayKey()))
+        val completed = store.getCompleted(todayKey())
+        adapter.submit(habits, completed)
         store.setHabitTotalForDay(todayKey(), habits.size)
     }
 
     //  Edit Habit
     private fun editHabit(h: Habit) {
-        AddHabitDialog.show(requireContext()) {
+        AddHabitDialog.show(requireContext(), h) {
             Toast.makeText(requireContext(), "Habit updated!", Toast.LENGTH_SHORT).show()
             refresh()
         }
@@ -70,6 +74,7 @@ class HabitsFragment : Fragment() {
         val set = store.getCompleted(todayKey())
         set.remove(h.id)
         store.setCompleted(todayKey(), set)
+        HabitReminderScheduler.cancel(requireContext(), h.id)
         refresh()
     }
 

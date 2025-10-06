@@ -97,10 +97,22 @@
     <string name="reminder_started">Hydration reminder started</string>
     <string name="reminder_stopped">Hydration reminder stopped</string>
     <string name="reminder_message">Time to drink water 💧</string>
+    <string name="hydration_manage_title">Hydration reminder</string>
+    <string name="hydration_interval_option">Every %1$d minutes</string>
+    <string name="hydration_stop">Stop reminder</string>
+    <string name="hydration_started_toast">Hydration reminder every %1$d minutes</string>
+    <string name="hydration_disabled_toast">Hydration reminder turned off</string>
+    <string name="home_hydration_status_on">Reminder every %1$d min</string>
+    <string name="home_hydration_status_off">No reminder active</string>
+    <string name="hydration_button_manage">Manage Reminder</string>
+    <string name="hydration_button_set">Set Reminder</string>
+    <string name="notification_hydration_title">Time to drink water</string>
+    <string name="notification_hydration_body">Stay hydrated 💧</string>
 
     <!-- Status & Notifications -->
     <string name="status_off">Status: Off</string>
     <string name="status_on">Status: On</string>
+    <string name="notification_habit_body">Scheduled for %1$s</string>
 
     <!-- Common UI -->
     <string name="ok">OK</string>

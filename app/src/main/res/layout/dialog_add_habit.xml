@@ -291,7 +291,7 @@
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
                         android:layout_marginStart="12dp"
-                        android:text="07:00 AM"
+                        android:text="07:00"
                         android:textColor="@color/textSecondary" />
                 </LinearLayout>
 

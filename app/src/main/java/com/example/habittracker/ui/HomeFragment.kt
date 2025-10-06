@@ -1,8 +1,12 @@
 package com.example.habittracker.ui
 
 import android.os.Bundle
-import android.view.*
-import android.widget.*
+import android.view.LayoutInflater
+import android.view.View
+import android.view.ViewGroup
+import android.widget.Button
+import android.widget.TextView
+import android.widget.Toast
 import androidx.fragment.app.Fragment
 import androidx.navigation.fragment.findNavController
 import androidx.recyclerview.widget.LinearLayoutManager
@@ -14,6 +18,8 @@ import com.example.habittracker.data.MoodEntry
 import com.example.habittracker.data.PrefStore
 import com.example.habittracker.data.todayKey
 import com.google.android.material.bottomnavigation.BottomNavigationView
+import com.example.habittracker.notify.HabitReminderScheduler
+import com.example.habittracker.notify.HydrationScheduler
 import com.google.android.material.floatingactionbutton.FloatingActionButton
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import com.github.mikephil.charting.charts.LineChart
@@ -31,6 +37,8 @@ class HomeFragment : Fragment() {
     private lateinit var tvStreak: TextView
     private lateinit var tvTodayCount: TextView
     private lateinit var tvTodayMood: TextView
+    private lateinit var tvWaterStatus: TextView
+    private lateinit var btnWaterReminder: Button
     private lateinit var habitCompletionChart: LineChart
     private val moodOptions = listOf(
         MoodOption("😎", "Great"),
@@ -50,6 +58,7 @@ class HomeFragment : Fragment() {
         tvStreak = view.findViewById(R.id.tvStreak)
         tvTodayCount = view.findViewById(R.id.tvTodayCount)
         tvTodayMood = view.findViewById(R.id.tvTodayMood)
+        tvWaterStatus = view.findViewById(R.id.tvWaterStatus)
         habitCompletionChart = view.findViewById(R.id.habitCompletionChart)
 
         rv = view.findViewById(R.id.rvTodayHabits)
@@ -69,9 +78,8 @@ class HomeFragment : Fragment() {
         }
 
         //  Hydration button
-        view.findViewById<Button>(R.id.btnWaterReminder).setOnClickListener {
-            Toast.makeText(requireContext(), "Hydration reminder set!", Toast.LENGTH_SHORT).show()
-        }
+        btnWaterReminder = view.findViewById(R.id.btnWaterReminder)
+        btnWaterReminder.setOnClickListener { showHydrationDialog() }
 
         //  Mood button
         view.findViewById<Button>(R.id.btnQuickMood).setOnClickListener {
@@ -158,6 +166,7 @@ class HomeFragment : Fragment() {
 
         updateTodayMood()
         updateCompletionChart(all.size)
+        updateHydrationStatus()
     }
 
     //  Calculate streak
@@ -177,6 +186,60 @@ class HomeFragment : Fragment() {
             cal.add(Calendar.DAY_OF_YEAR, -1)
         }
         return streak
+    }
+
+    private fun showHydrationDialog() {
+        val intervals = listOf(30, 60, 90, 120)
+        val stored = store.getInterval().takeIf { it > 0 }
+        var selectedIndex = stored?.let { intervals.indexOf(it) } ?: 1
+        if (selectedIndex < 0) selectedIndex = 1
+        var currentSelection = selectedIndex
+
+        val labels = intervals.map { getString(R.string.hydration_interval_option, it) }.toTypedArray()
+
+        MaterialAlertDialogBuilder(requireContext())
+            .setTitle(getString(R.string.hydration_manage_title))
+            .setSingleChoiceItems(labels, selectedIndex) { _, which ->
+                currentSelection = which
+            }
+            .setPositiveButton(getString(R.string.start)) { dialog, _ ->
+                val minutes = intervals.getOrNull(currentSelection) ?: intervals[1]
+                store.setInterval(minutes)
+                store.setHydrationOn(true)
+                HydrationScheduler.start(requireContext(), minutes)
+                Toast.makeText(
+                    requireContext(),
+                    getString(R.string.hydration_started_toast, minutes),
+                    Toast.LENGTH_SHORT
+                ).show()
+                updateHydrationStatus()
+                dialog.dismiss()
+            }
+            .setNeutralButton(getString(R.string.hydration_stop)) { dialog, _ ->
+                HydrationScheduler.stop(requireContext())
+                store.setHydrationOn(false)
+                Toast.makeText(
+                    requireContext(),
+                    getString(R.string.hydration_disabled_toast),
+                    Toast.LENGTH_SHORT
+                ).show()
+                updateHydrationStatus()
+                dialog.dismiss()
+            }
+            .setNegativeButton(getString(R.string.cancel), null)
+            .show()
+    }
+
+    private fun updateHydrationStatus() {
+        val isOn = store.isHydrationOn()
+        val interval = store.getInterval()
+        if (isOn && interval > 0) {
+            tvWaterStatus.text = getString(R.string.home_hydration_status_on, interval)
+            btnWaterReminder.text = getString(R.string.hydration_button_manage)
+        } else {
+            tvWaterStatus.text = getString(R.string.home_hydration_status_off)
+            btnWaterReminder.text = getString(R.string.hydration_button_set)
+        }
     }
 
     //  Setup chart
@@ -272,8 +335,8 @@ class HomeFragment : Fragment() {
 
     private fun editHabit(h: Habit) {
         // previously you had fragment.showAddDialog(h) which won't work
-        AddHabitDialog.show(requireContext()) {
-            refresh()
+        AddHabitDialog.show(requireContext(), h) {
+        refresh()
         }
     }
 
@@ -284,6 +347,7 @@ class HomeFragment : Fragment() {
         val set = store.getCompleted(todayKey())
         set.remove(h.id)
         store.setCompleted(todayKey(), set)
+        HabitReminderScheduler.cancel(requireContext(), h.id)
         Toast.makeText(requireContext(), getString(R.string.habit_deleted_success), Toast.LENGTH_SHORT).show()
         refresh()
     }

@@ -1,16 +1,25 @@
 package com.example.habittracker.ui
 
-import android.app.*
+import android.app.DatePickerDialog
+import android.app.TimePickerDialog
 import android.content.Context
 import android.view.LayoutInflater
 import android.view.View
-import android.widget.*
+import android.widget.Button
+import android.widget.EditText
+import android.widget.LinearLayout
+import android.widget.TextView
+import android.widget.Toast
 import com.example.habittracker.R
 import com.example.habittracker.data.Habit
 import com.example.habittracker.data.PrefStore
+import com.example.habittracker.notify.HabitReminderScheduler
 import com.google.android.material.button.MaterialButtonToggleGroup
+import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import com.google.android.material.switchmaterial.SwitchMaterial
-import java.util.*
+import java.util.Calendar
+import java.util.Locale
+import java.util.UUID
 
 object AddHabitDialog {
 
@@ -31,25 +40,30 @@ object AddHabitDialog {
         val tvHabitDate = v.findViewById<TextView>(R.id.tvHabitDate)
         val tvTime = v.findViewById<TextView>(R.id.tvTime)
         val swReminder = v.findViewById<SwitchMaterial>(R.id.swReminder)
-        val btnSave = v.findViewById<View>(R.id.btnSave)
-        val btnCancel = v.findViewById<View>(R.id.btnCancel)
-        val cbAllDay = v.findViewById<CheckBox>(R.id.cbAllDay)
+        val btnSave = v.findViewById<Button>(R.id.btnSave)
+        val btnCancel = v.findViewById<Button>(R.id.btnCancel)
 
         // Default values
         var repeat = "Daily"
         var dateStr = tvHabitDate.text.toString()
         var timeStr = tvTime.text.toString()
 
+        swReminder.setOnCheckedChangeListener { _, isChecked ->
+            tvTime.isEnabled = isChecked
+            tvTime.alpha = if (isChecked) 1f else 0.5f
+        }
+
         // --- EDIT MODE PREFILL ---
         if (existingHabit != null) {
             etTitle.setText(existingHabit.title ?: "")
             tvHabitDate.text = existingHabit.date ?: ""
-            swReminder.isChecked = existingHabit.reminder != null
+            val hasReminder = existingHabit.reminderEnabled || !existingHabit.reminder.isNullOrEmpty()
+            swReminder.isChecked = hasReminder
             tvTime.text = existingHabit.reminder ?: ""
             repeat = existingHabit.repeat ?: "Daily"
             v.findViewById<TextView>(R.id.tvDialogTitle).text = "Edit Habit"
 
-            (btnSave as Button).text = "Update"
+            btnSave.text = "Update"
 
             when (repeat) {
                 "Daily" -> tgRepeat.check(R.id.btnRepeatDaily)
@@ -60,7 +74,13 @@ object AddHabitDialog {
             layoutDaily.visibility = if (repeat == "Daily") View.VISIBLE else View.GONE
             layoutWeekly.visibility = if (repeat == "Weekly") View.VISIBLE else View.GONE
             layoutMonthly.visibility = if (repeat == "Monthly") View.VISIBLE else View.GONE
+
+            timeStr = existingHabit.reminder ?: timeStr
+            dateStr = existingHabit.date ?: dateStr
         }
+
+        tvTime.isEnabled = swReminder.isChecked
+        tvTime.alpha = if (swReminder.isChecked) 1f else 0.5f
 
         // --- SWITCH LAYOUTS ---
         tgRepeat.addOnButtonCheckedListener { _, checkedId, _ ->
@@ -118,7 +138,7 @@ object AddHabitDialog {
         }
 
         // --- DIALOG ---
-        val dlg = AlertDialog.Builder(context)
+        val dlg = MaterialAlertDialogBuilder(context)
             .setView(v)
             .create()
 
@@ -136,10 +156,17 @@ object AddHabitDialog {
             val newHabit = Habit(
                 id = existingHabit?.id ?: UUID.randomUUID().toString(),
                 title = title,
+                icon = existingHabit?.icon,
                 color = existingHabit?.color ?: "#8B88F8",
                 repeat = repeat,
                 date = dateStr,
-                reminder = if (swReminder.isChecked) timeStr else null
+                reminder = if (swReminder.isChecked) timeStr else null,
+                reminderEnabled = swReminder.isChecked,
+                timeOfDay = existingHabit?.timeOfDay,
+                weeklyDays = existingHabit?.weeklyDays ?: emptyList(),
+                monthlyDays = existingHabit?.monthlyDays,
+                endType = existingHabit?.endType,
+                endValue = existingHabit?.endValue
             )
 
             val list = store.getHabits()
@@ -154,6 +181,13 @@ object AddHabitDialog {
             }
 
             store.saveHabits(list)
+
+            if (newHabit.reminderEnabled && !newHabit.reminder.isNullOrEmpty()) {
+                HabitReminderScheduler.schedule(context, newHabit)
+            } else {
+                HabitReminderScheduler.cancel(context, newHabit.id)
+            }
+
             dlg.dismiss()
             onAddedOrUpdated?.invoke()
         }
