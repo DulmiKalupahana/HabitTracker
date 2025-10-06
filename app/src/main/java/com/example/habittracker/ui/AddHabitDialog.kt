@@ -4,10 +4,14 @@ import android.app.*
 import android.content.Context
 import android.view.LayoutInflater
 import android.view.View
-import android.widget.*
+import android.widget.EditText
+import android.widget.GridLayout
+import android.widget.TextView
+import android.widget.Toast
 import com.example.habittracker.R
 import com.example.habittracker.data.Habit
 import com.example.habittracker.data.PrefStore
+import com.google.android.material.switchmaterial.SwitchMaterial
 import java.util.*
 
 // Dialog for adding new habits with title input
@@ -20,8 +24,7 @@ object AddHabitDialog {
         val etTitle = v.findViewById<EditText>(R.id.etTitle)
         val dateTv = v.findViewById<TextView>(R.id.tvDate)
         val timeTv = v.findViewById<TextView>(R.id.tvTime)
-        val swReminder = v.findViewById<Switch>(R.id.swReminder)
-
+        val swReminder = v.findViewById<SwitchMaterial>(R.id.swReminder)
         var selectedColor = "#8B88F8"
         var repeat = "Daily"
         var dateStr = dateTv.text.toString()
