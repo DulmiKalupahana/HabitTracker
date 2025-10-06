@@ -16,8 +16,9 @@ data class MoodEntry(
 )
 
 //  Utility
-fun todayKey(): String {
+fun todayKey(date: Date = Date()): String {
     val cal = Calendar.getInstance()
+    cal.time = date
     val year = cal.get(Calendar.YEAR)
     val month = String.format("%02d", cal.get(Calendar.MONTH) + 1)
     val day = String.format("%02d", cal.get(Calendar.DAY_OF_MONTH))

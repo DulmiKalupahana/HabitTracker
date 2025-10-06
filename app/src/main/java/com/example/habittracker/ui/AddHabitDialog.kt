@@ -12,6 +12,7 @@ import com.example.habittracker.data.Habit
 import com.example.habittracker.data.PrefStore
 import java.util.*
 
+// Dialog for adding new habits with title input
 object AddHabitDialog {
     fun show(context: Context, onAdded: (() -> Unit)? = null) {
         val store = PrefStore(context)

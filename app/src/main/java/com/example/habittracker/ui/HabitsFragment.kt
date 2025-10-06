@@ -18,6 +18,7 @@ import com.google.android.material.floatingactionbutton.FloatingActionButton
 import android.widget.Toast
 import java.util.*
 
+// Fragment for displaying and managing the user's habits list
 class HabitsFragment : Fragment() {
     private lateinit var store: PrefStore
     private lateinit var rv: RecyclerView
@@ -29,6 +30,8 @@ class HabitsFragment : Fragment() {
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         store = PrefStore(requireContext())
+
+        // Setup RecyclerView for habits list
         rv = view.findViewById(R.id.rvHabits)
         rv.layoutManager = LinearLayoutManager(requireContext())
         adapter = HabitAdapter(::toggleDone, ::editHabit, ::deleteHabit)
@@ -49,6 +52,7 @@ class HabitsFragment : Fragment() {
 
     }
 
+    // Reload habits and today's completion status from storage
     private fun refresh() {
         adapter.submit(store.getHabits(), store.getCompleted(todayKey()))
     }
@@ -73,19 +77,23 @@ class HabitsFragment : Fragment() {
         dlg.show()
     }
 
+    // Open edit dialog for existing habit
     private fun editHabit(h: Habit) = showAddDialog(h)
 
+    // Delete habit and remove from completion tracking
     private fun deleteHabit(h: Habit) {
         val list = store.getHabits()
         list.removeAll { it.id == h.id }
         store.saveHabits(list)
-        // also remove from today's completion
+
+        // Remove from today's completion status
         val set = store.getCompleted(todayKey())
         set.remove(h.id)
         store.setCompleted(todayKey(), set)
         refresh()
     }
 
+    // Toggle habit completion status for today
     private fun toggleDone(h: Habit, done: Boolean) {
         val set = store.getCompleted(todayKey())
         if (done) set.add(h.id) else set.remove(h.id)

@@ -18,6 +18,7 @@ import com.github.mikephil.charting.formatter.ValueFormatter
 import com.example.habittracker.ui.AddHabitDialog
 import java.util.*
 
+// Home dashboard showing habit completion stats and mood trend chart
 class HomeFragment : Fragment() {
 
     private lateinit var store: PrefStore
@@ -34,6 +35,7 @@ class HomeFragment : Fragment() {
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         store = PrefStore(requireContext())
 
+        // Initialize UI elements
         tvStreak = view.findViewById(R.id.tvStreak)
         tvTodayCount = view.findViewById(R.id.tvTodayCount)
         moodChart = view.findViewById(R.id.moodChart)
@@ -76,6 +78,7 @@ class HomeFragment : Fragment() {
         updateMoodChart()
     }
 
+    // Calculate consecutive days where all habits were completed
     private fun calcStreak(): Int {
         var streak = 0
         val cal = Calendar.getInstance()

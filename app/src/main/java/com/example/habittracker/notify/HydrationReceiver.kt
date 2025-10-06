@@ -13,9 +13,10 @@ import androidx.core.content.ContextCompat
 import com.example.habittracker.MainActivity
 import com.example.habittracker.R
 
+// BroadcastReceiver that displays hydration reminder notifications
 class HydrationReceiver : BroadcastReceiver() {
     override fun onReceive(context: Context, intent: Intent) {
-        // 🔐 Check notification permission for Android 13+
+        // Check notification permission for Android 13+
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
             if (ContextCompat.checkSelfPermission(
                     context,
@@ -26,8 +27,10 @@ class HydrationReceiver : BroadcastReceiver() {
             }
         }
 
+        // Ensure notification channel is created
         NotifyUtils.ensureChannel(context)
 
+        // Build and display notification
         val pi = PendingIntent.getActivity(
             context, 0, Intent(context, MainActivity::class.java),
             PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE

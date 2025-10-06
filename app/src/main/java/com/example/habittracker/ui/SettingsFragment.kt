@@ -10,6 +10,7 @@ import com.example.habittracker.R
 import com.example.habittracker.data.PrefStore
 import com.example.habittracker.notify.HydrationScheduler
 
+// Settings fragment for configuring hydration reminders and sharing mood summaries
 class SettingsFragment : Fragment() {
     private lateinit var store: PrefStore
     private lateinit var tv: TextView
@@ -25,6 +26,7 @@ class SettingsFragment : Fragment() {
         et = view.findViewById(R.id.etInterval)
         et.setText(store.getInterval().takeIf { it>0 }?.toString() ?: "")
 
+        // Start hydration reminder with AlarmManager
         view.findViewById<View>(R.id.btnStart).setOnClickListener {
             val mins = et.text.toString().toIntOrNull()
             if (mins == null || mins <= 0) { et.error = "Enter minutes"; return@setOnClickListener }
@@ -33,14 +35,16 @@ class SettingsFragment : Fragment() {
             store.setHydrationOn(true)
             tv.text = "Status: On ($mins min)"
         }
+        // Stop hydration reminder
         view.findViewById<View>(R.id.btnStop).setOnClickListener {
             HydrationScheduler.stop(requireContext())
             store.setHydrationOn(false)
             tv.text = "Status: Off"
         }
 
+        // Share mood summary using implicit intent
         view.findViewById<View>(R.id.btnShareMoodSummary).setOnClickListener {
-            val moods = store.getMoods().take(10) // brief
+            val moods = store.getMoods().take(10)
             val text = buildString {
                 append("My recent moods on LifeTrack:\n")
                 moods.forEach { append("• ${it.emoji} @ ${java.text.SimpleDateFormat("MM-dd HH:mm").format(java.util.Date(it.timestamp))}\n") }

@@ -13,6 +13,7 @@ import java.text.SimpleDateFormat
 import java.util.*
 import androidx.core.view.children
 
+// Fragment for mood journal with calendar view and emoji selector
 class MoodFragment : Fragment() {
 
     private lateinit var prefs: android.content.SharedPreferences
@@ -46,6 +47,7 @@ class MoodFragment : Fragment() {
         }
     }
 
+    // Retrieve mood entries from SharedPreferences
     private fun getMoodList(): MutableList<MoodEntry> {
         val json = prefs.getString("moodList", "[]")
         val type = object : TypeToken<MutableList<MoodEntry>>() {}.type
@@ -56,6 +58,7 @@ class MoodFragment : Fragment() {
         prefs.edit().putString("moodList", gson.toJson(list)).apply()
     }
 
+    // Load and display mood calendar for the current month
     private fun loadMonth(grid: GridView, tvMonth: TextView, tvInfo: TextView) {
         val list = getMoodList()
         val days = mutableListOf<Triple<Int, String?, String?>>()
@@ -92,6 +95,7 @@ class MoodFragment : Fragment() {
         }
     }
 
+    // Show bottom sheet dialog for adding/editing mood with emoji selector
     private fun showMoodPicker(selectedDate: Calendar, tvInfo: TextView) {
         val dialogView = layoutInflater.inflate(R.layout.dialog_add_mood, null)
         val dialog = BottomSheetDialog(requireContext())

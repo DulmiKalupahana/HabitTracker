@@ -13,12 +13,6 @@
         android:supportsRtl="true"
         android:theme="@style/Theme.Material3.DayNight.NoActionBar">
         <activity
-            android:name=".ui.AddHabitDialog"
-            android:exported="false" />
-        <activity
-            android:name=".ui.AddHabitDialog.kt"
-            android:exported="false" />
-        <activity
             android:name=".MainActivity"
             android:exported="true">
             <intent-filter>
@@ -26,7 +20,8 @@
 
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
-        </activity> <!-- Hydration notifications -->
+        </activity>
+
         <receiver
             android:name=".notify.HydrationReceiver"
             android:exported="false" />

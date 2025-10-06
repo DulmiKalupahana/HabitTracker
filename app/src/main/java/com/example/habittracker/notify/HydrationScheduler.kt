@@ -6,7 +6,9 @@ import android.content.Context
 import android.content.Intent
 import java.util.concurrent.TimeUnit
 
+// Manages repeating hydration reminders using AlarmManager
 object HydrationScheduler {
+    // Schedule repeating alarm for hydration notifications
     fun start(context: Context, minutes: Int) {
         val am = context.getSystemService(Context.ALARM_SERVICE) as AlarmManager
         val intent = Intent(context, HydrationReceiver::class.java)
@@ -19,6 +21,7 @@ object HydrationScheduler {
         am.setRepeating(AlarmManager.RTC_WAKEUP, first, intervalMs, pi)
     }
 
+    // Cancel scheduled hydration reminders
     fun stop(context: Context) {
         val am = context.getSystemService(Context.ALARM_SERVICE) as AlarmManager
         val intent = Intent(context, HydrationReceiver::class.java)
