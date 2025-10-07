@@ -49,6 +49,11 @@ class HomeFragment : Fragment() {
         MoodOption("😡", "Bad")
     )
 
+    companion object {
+        const val REQUEST_KEY = "add_habit_result"
+        const val RESULT_REFRESH = "refresh"
+    }
+
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?
     ): View = inflater.inflate(R.layout.fragment_home, container, false)
@@ -95,10 +100,10 @@ class HomeFragment : Fragment() {
         }
 
         parentFragmentManager.setFragmentResultListener(
-            AddHabitFragment.REQUEST_KEY,
+            REQUEST_KEY,
             viewLifecycleOwner
         ) { _, bundle ->
-            if (bundle.getBoolean(AddHabitFragment.RESULT_REFRESH, false)) {
+            if (bundle.getBoolean(RESULT_REFRESH, false)) {
                 refresh()
             }
         }
@@ -347,10 +352,9 @@ class HomeFragment : Fragment() {
 
     private fun openHabitEditor(h: Habit?) {
         val bundle = h?.let { bundleOf(AddHabitFragment.ARG_HABIT_ID to it.id) }
-        findNavController().navigate(
-            R.id.action_homeFragment_to_addHabitFragment,
-            bundle
-        )
+        val navController = findNavController()
+        // Navigate using the safe action defined in the navigation graph for HomeFragment
+        navController.navigate(R.id.action_homeFragment_to_addHabitFragment, bundle)
     }
 
     private fun deleteHabit(h: Habit) {

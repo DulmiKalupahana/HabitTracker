@@ -6,18 +6,13 @@ import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
-import android.widget.Button
-import android.widget.EditText
-import android.widget.LinearLayout
-import android.widget.TextView
-import android.widget.Toast
-import androidx.core.os.bundleOf
+import android.widget.*
 import androidx.fragment.app.Fragment
-import androidx.navigation.fragment.findNavController
 import com.example.habittracker.R
 import com.example.habittracker.data.Habit
 import com.example.habittracker.data.PrefStore
 import com.example.habittracker.notify.HabitReminderScheduler
+import com.google.android.material.appbar.MaterialToolbar
 import com.google.android.material.button.MaterialButtonToggleGroup
 import com.google.android.material.switchmaterial.SwitchMaterial
 import java.util.Calendar
@@ -45,14 +40,7 @@ class AddHabitFragment : Fragment() {
     ): View = inflater.inflate(R.layout.fragment_add_habit, container, false)
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
-        val toolbar = view.findViewById<com.google.android.material.appbar.MaterialToolbar>(R.id.toolbar)
-        toolbar.setNavigationOnClickListener { findNavController().navigateUp() }
-        toolbar.title = if (existingHabit == null) {
-            getString(R.string.add_habit_heading)
-        } else {
-            getString(R.string.edit_habit)
-        }
-
+        val toolbar = view.findViewById<MaterialToolbar>(R.id.toolbar)
         val etTitle = view.findViewById<EditText>(R.id.etTitle)
         val tgRepeat = view.findViewById<MaterialButtonToggleGroup>(R.id.tgRepeat)
         val layoutDaily = view.findViewById<LinearLayout>(R.id.layoutDaily)
@@ -63,6 +51,12 @@ class AddHabitFragment : Fragment() {
         val swReminder = view.findViewById<SwitchMaterial>(R.id.swReminder)
         val btnSave = view.findViewById<Button>(R.id.btnSave)
         val btnCancel = view.findViewById<Button>(R.id.btnCancel)
+
+        // 🔹 Remove navigation — just simple toolbar title
+        toolbar.title = if (existingHabit == null)
+            getString(R.string.add_habit_heading)
+        else
+            getString(R.string.edit_habit)
 
         var repeat = "Daily"
         var dateStr = tvHabitDate.text.toString()
@@ -123,6 +117,7 @@ class AddHabitFragment : Fragment() {
             }
         }
 
+        // 📅 Date picker
         view.findViewById<View>(R.id.btnPickHabitDate).setOnClickListener {
             val cal = Calendar.getInstance()
             DatePickerDialog(
@@ -137,6 +132,7 @@ class AddHabitFragment : Fragment() {
             ).show()
         }
 
+        // ⏰ Time picker
         tvTime.setOnClickListener {
             val cal = Calendar.getInstance()
             TimePickerDialog(
@@ -151,8 +147,19 @@ class AddHabitFragment : Fragment() {
             ).show()
         }
 
-        btnCancel.setOnClickListener { findNavController().navigateUp() }
+        // ❌ Cancel — just clear fields instead of navigation
+        btnCancel.setOnClickListener {
+            etTitle.text.clear()
+            swReminder.isChecked = false
+            tgRepeat.clearChecked()
+            layoutDaily.visibility = View.VISIBLE
+            layoutWeekly.visibility = View.GONE
+            layoutMonthly.visibility = View.GONE
+            tvHabitDate.text = getString(R.string.add_habit_date_none)
+            Toast.makeText(requireContext(), "Cancelled", Toast.LENGTH_SHORT).show()
+        }
 
+        // 💾 Save habit locally
         btnSave.setOnClickListener {
             val title = etTitle.text.toString().trim()
             if (title.isEmpty()) {
@@ -179,9 +186,7 @@ class AddHabitFragment : Fragment() {
             val habits = store.getHabits()
             if (existingHabit != null) {
                 val index = habits.indexOfFirst { it.id == existingHabit!!.id }
-                if (index != -1) {
-                    habits[index] = newHabit
-                }
+                if (index != -1) habits[index] = newHabit
                 Toast.makeText(requireContext(), R.string.habit_updated_success, Toast.LENGTH_SHORT).show()
             } else {
                 habits.add(newHabit)
@@ -196,15 +201,12 @@ class AddHabitFragment : Fragment() {
                 HabitReminderScheduler.cancel(requireContext(), newHabit.id)
             }
 
-            val resultBundle = bundleOf(RESULT_REFRESH to true)
-            parentFragmentManager.setFragmentResult(REQUEST_KEY, resultBundle)
-            findNavController().navigateUp()
+            // ✅ No navigation — just feedback
+            Toast.makeText(requireContext(), "Habit saved successfully!", Toast.LENGTH_SHORT).show()
         }
     }
 
     companion object {
         const val ARG_HABIT_ID = "habitId"
-        const val REQUEST_KEY = "add_habit_result"
-        const val RESULT_REFRESH = "refresh"
     }
 }

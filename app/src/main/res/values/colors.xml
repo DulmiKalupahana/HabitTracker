@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-!-- 60% - Primary Background -->
+    <!-- 60% - Primary Background -->
     <color name="colorPrimary">#FFFFFF</color>        <!-- Main white background -->
 
     <!-- 30% - Secondary Surfaces  -->

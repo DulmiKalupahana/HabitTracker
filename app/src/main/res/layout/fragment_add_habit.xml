@@ -6,8 +6,10 @@
     android:layout_height="match_parent"
     android:orientation="vertical"
     android:background="@android:color/white"
+    android:fitsSystemWindows="true"
     tools:context=".ui.AddHabitFragment">
 
+    <!-- Toolbar -->
     <com.google.android.material.appbar.MaterialToolbar
         android:id="@+id/toolbar"
         android:layout_width="match_parent"
@@ -17,18 +19,23 @@
         app:title="@string/add_habit_title"
         app:navigationIcon="@drawable/ic_arrow_back" />
 
+    <!-- Scrollable Form Content -->
     <ScrollView
         android:layout_width="match_parent"
         android:layout_height="0dp"
         android:layout_weight="1"
-        android:padding="24dp"
-        android:clipToPadding="false">
+        android:clipToPadding="false"
+        android:paddingStart="24dp"
+        android:paddingEnd="24dp"
+        android:paddingTop="32dp"
+        android:paddingBottom="120dp">
 
         <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:orientation="vertical">
 
+            <!-- Title -->
             <TextView
                 android:id="@+id/tvDialogTitle"
                 android:layout_width="wrap_content"
@@ -39,6 +46,7 @@
                 android:textStyle="bold"
                 android:layout_marginBottom="16dp" />
 
+            <!-- Habit Name -->
             <com.google.android.material.textfield.TextInputLayout
                 style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox"
                 android:layout_width="match_parent"
@@ -53,6 +61,7 @@
                     android:inputType="textCapSentences" />
             </com.google.android.material.textfield.TextInputLayout>
 
+            <!-- Repeat Type -->
             <TextView
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
@@ -84,6 +93,7 @@
                     android:text="@string/add_habit_repeat_monthly" />
             </com.google.android.material.button.MaterialButtonToggleGroup>
 
+            <!-- Daily Layout -->
             <LinearLayout
                 android:id="@+id/layoutDaily"
                 android:layout_width="match_parent"
@@ -144,6 +154,7 @@
                 </com.google.android.material.button.MaterialButtonToggleGroup>
             </LinearLayout>
 
+            <!-- Weekly Layout -->
             <LinearLayout
                 android:id="@+id/layoutWeekly"
                 android:layout_width="match_parent"
@@ -191,6 +202,7 @@
                 </com.google.android.material.button.MaterialButtonToggleGroup>
             </LinearLayout>
 
+            <!-- Monthly Layout -->
             <LinearLayout
                 android:id="@+id/layoutMonthly"
                 android:layout_width="match_parent"
@@ -222,6 +234,7 @@
                 </com.google.android.material.textfield.TextInputLayout>
             </LinearLayout>
 
+            <!-- Date Picker -->
             <TextView
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
@@ -263,6 +276,7 @@
                     app:tint="@color/textSecondary" />
             </LinearLayout>
 
+            <!-- Reminder -->
             <TextView
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
@@ -296,13 +310,15 @@
         </LinearLayout>
     </ScrollView>
 
+    <!-- Fixed Bottom Buttons -->
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:orientation="horizontal"
         android:padding="16dp"
         android:weightSum="2"
-        android:background="@color/lineSoft">
+        android:background="@color/lineSoft"
+        android:elevation="4dp">
 
         <com.google.android.material.button.MaterialButton
             android:id="@+id/btnCancel"

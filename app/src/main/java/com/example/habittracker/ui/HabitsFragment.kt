@@ -26,6 +26,11 @@ class HabitsFragment : Fragment() {
     private lateinit var rv: RecyclerView
     private lateinit var adapter: HabitAdapter
 
+    companion object {
+        const val REQUEST_KEY = "add_habit_result"
+        const val RESULT_REFRESH = "refresh"
+    }
+
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?
     ): View = inflater.inflate(R.layout.fragment_habits, container, false)
@@ -47,10 +52,10 @@ class HabitsFragment : Fragment() {
         }
 
         parentFragmentManager.setFragmentResultListener(
-            AddHabitFragment.REQUEST_KEY,
+            REQUEST_KEY,
             viewLifecycleOwner
         ) { _, bundle ->
-            if (bundle.getBoolean(AddHabitFragment.RESULT_REFRESH, false)) {
+            if (bundle.getBoolean(RESULT_REFRESH, false)) {
                 refresh()
             }
         }
@@ -80,10 +85,9 @@ class HabitsFragment : Fragment() {
 
     private fun openHabitEditor(habit: Habit?) {
         val bundle = habit?.let { bundleOf(AddHabitFragment.ARG_HABIT_ID to it.id) }
-        findNavController().navigate(
-            R.id.action_habitsFragment_to_addHabitFragment,
-            bundle
-        )
+        val navController = findNavController()
+        // Navigate using the safe action defined in the navigation graph
+        navController.navigate(R.id.action_habitsFragment_to_addHabitFragment, bundle)
     }
 
     //  Delete Habit
