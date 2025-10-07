@@ -59,4 +59,13 @@ class PrefStore(ctx: Context) {
     fun getInterval(): Int = sp.getInt("hydration_mins", 0)
     fun setHydrationOn(on: Boolean) = sp.edit().putBoolean("hydration_on", on).apply()
     fun isHydrationOn(): Boolean = sp.getBoolean("hydration_on", false)
+
+    fun setProfileName(name: String) = sp.edit().putString("profile_name", name).apply()
+    fun getProfileName(): String = sp.getString("profile_name", "") ?: ""
+
+    fun setProfileEmail(email: String) = sp.edit().putString("profile_email", email).apply()
+    fun getProfileEmail(): String = sp.getString("profile_email", "") ?: ""
+
+    fun setProfileGoal(goal: String) = sp.edit().putString("profile_goal", goal).apply()
+    fun getProfileGoal(): String = sp.getString("profile_goal", "") ?: ""
 }

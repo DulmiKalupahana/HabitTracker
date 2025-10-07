@@ -16,7 +16,7 @@
         android:icon="@android:drawable/ic_menu_edit" />
 
     <item
-        android:id="@+id/settingsFragment"
-        android:title="Settings"
-        android:icon="@android:drawable/ic_menu_manage" />
+        android:id="@+id/profileFragment"
+        android:title="Profile"
+        android:icon="@android:drawable/ic_menu_myplaces" />
 </menu>

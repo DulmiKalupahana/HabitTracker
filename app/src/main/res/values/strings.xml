@@ -120,4 +120,35 @@
     <string name="no">No</string>
     <string name="confirm">Confirm</string>
     <string name="close">Close</string>
+    <!-- Add Habit -->
+    <string name="add_habit_title">Habit Details</string>
+    <string name="add_habit_heading">Create New Habit</string>
+    <string name="add_habit_name_hint">Habit Name</string>
+    <string name="add_habit_repeat">Repeat</string>
+    <string name="add_habit_repeat_daily">Daily</string>
+    <string name="add_habit_repeat_weekly">Weekly</string>
+    <string name="add_habit_repeat_monthly">Monthly</string>
+    <string name="add_habit_daily_label">On these days:</string>
+    <string name="add_habit_daily_all">All day</string>
+    <string name="add_habit_weekly_label">5 days per week</string>
+    <string name="add_habit_monthly_label">Every month on:</string>
+    <string name="add_habit_monthly_hint">E.g. 3, 8, 13, 22</string>
+    <string name="add_habit_date_label">Date of Habit</string>
+    <string name="add_habit_date_none">No date selected</string>
+    <string name="add_habit_reminder_label">Set Reminder</string>
+    <string name="add_habit_cancel">Cancel</string>
+    <string name="add_habit_save">Save</string>
+
+    <!-- Profile -->
+    <string name="profile_title">Profile</string>
+    <string name="profile_header">Your profile</string>
+    <string name="profile_name_hint">Name</string>
+    <string name="profile_email_hint">Email</string>
+    <string name="profile_goal_hint">Focus area or goal</string>
+    <string name="profile_save">Save profile</string>
+    <string name="profile_saved_message">Profile updated!</string>
+    <string name="profile_hydration_header">Hydration reminder</string>
+    <string name="profile_share_moods">Share mood summary</string>
+    <!-- TODO: Remove or change this placeholder text -->
+    <string name="hello_blank_fragment">Hello blank fragment</string>
 </resources>

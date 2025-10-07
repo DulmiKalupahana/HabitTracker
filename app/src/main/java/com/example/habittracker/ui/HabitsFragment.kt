@@ -8,7 +8,9 @@ import android.widget.CheckBox
 import android.widget.ImageButton
 import android.widget.TextView
 import android.widget.Toast
+import androidx.core.os.bundleOf
 import androidx.fragment.app.Fragment
+import androidx.navigation.fragment.findNavController
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import com.example.habittracker.R
@@ -40,14 +42,27 @@ class HabitsFragment : Fragment() {
         fab.setOnClickListener {
             fab.animate().scaleX(0.9f).scaleY(0.9f).setDuration(100).withEndAction {
                 fab.animate().scaleX(1f).scaleY(1f).setDuration(100)
-                AddHabitDialog.show(requireContext()) {
-                    Toast.makeText(requireContext(), "Habit added!", Toast.LENGTH_SHORT).show()
-                    refresh()
-                }
+                openHabitEditor(null)
+            }
+        }
+
+        parentFragmentManager.setFragmentResultListener(
+            AddHabitFragment.REQUEST_KEY,
+            viewLifecycleOwner
+        ) { _, bundle ->
+            if (bundle.getBoolean(AddHabitFragment.RESULT_REFRESH, false)) {
+                refresh()
             }
         }
 
         refresh()
+    }
+
+    override fun onResume() {
+        super.onResume()
+        if (this::store.isInitialized) {
+            refresh()
+        }
     }
 
     //  Refresh RecyclerView
@@ -60,10 +75,15 @@ class HabitsFragment : Fragment() {
 
     //  Edit Habit
     private fun editHabit(h: Habit) {
-        AddHabitDialog.show(requireContext(), h) {
-            Toast.makeText(requireContext(), "Habit updated!", Toast.LENGTH_SHORT).show()
-            refresh()
-        }
+        openHabitEditor(h)
+    }
+
+    private fun openHabitEditor(habit: Habit?) {
+        val bundle = habit?.let { bundleOf(AddHabitFragment.ARG_HABIT_ID to it.id) }
+        findNavController().navigate(
+            R.id.action_habitsFragment_to_addHabitFragment,
+            bundle
+        )
     }
 
     //  Delete Habit

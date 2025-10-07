@@ -18,6 +18,7 @@ import com.example.habittracker.data.MoodEntry
 import com.example.habittracker.data.PrefStore
 import com.example.habittracker.data.todayKey
 import com.google.android.material.bottomnavigation.BottomNavigationView
+import androidx.core.os.bundleOf
 import com.example.habittracker.notify.HabitReminderScheduler
 import com.example.habittracker.notify.HydrationScheduler
 import com.google.android.material.floatingactionbutton.FloatingActionButton
@@ -71,9 +72,7 @@ class HomeFragment : Fragment() {
         fabAddHabit.setOnClickListener {
             fabAddHabit.animate().scaleX(0.9f).scaleY(0.9f).setDuration(100).withEndAction {
                 fabAddHabit.animate().scaleX(1f).scaleY(1f).setDuration(100)
-                AddHabitDialog.show(requireContext()) {
-                    refresh()
-                }
+                openHabitEditor(null)
             }
         }
 
@@ -92,6 +91,15 @@ class HomeFragment : Fragment() {
                 bottomNav.selectedItemId = R.id.habitsFragment
             } else {
                 findNavController().navigate(R.id.habitsFragment)
+            }
+        }
+
+        parentFragmentManager.setFragmentResultListener(
+            AddHabitFragment.REQUEST_KEY,
+            viewLifecycleOwner
+        ) { _, bundle ->
+            if (bundle.getBoolean(AddHabitFragment.RESULT_REFRESH, false)) {
+                refresh()
             }
         }
 
@@ -334,10 +342,15 @@ class HomeFragment : Fragment() {
     }
 
     private fun editHabit(h: Habit) {
-        // previously you had fragment.showAddDialog(h) which won't work
-        AddHabitDialog.show(requireContext(), h) {
-        refresh()
-        }
+        openHabitEditor(h)
+    }
+
+    private fun openHabitEditor(h: Habit?) {
+        val bundle = h?.let { bundleOf(AddHabitFragment.ARG_HABIT_ID to it.id) }
+        findNavController().navigate(
+            R.id.action_homeFragment_to_addHabitFragment,
+            bundle
+        )
     }
 
     private fun deleteHabit(h: Habit) {
