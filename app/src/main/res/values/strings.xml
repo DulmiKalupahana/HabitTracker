@@ -96,7 +96,7 @@
     <string name="stop">Stop</string>
     <string name="reminder_started">Hydration reminder started</string>
     <string name="reminder_stopped">Hydration reminder stopped</string>
-    <string name="reminder_message">Time to drink water 💧</string>
+    <string name="reminder_message">Remember to drink water 💧</string>
     <string name="hydration_manage_title">Hydration reminder</string>
     <string name="hydration_interval_option">Every %1$d minutes</string>
     <string name="hydration_stop">Stop reminder</string>
@@ -107,7 +107,7 @@
     <string name="hydration_button_manage">Manage Reminder</string>
     <string name="hydration_button_set">Set Reminder</string>
     <string name="notification_hydration_title">Time to drink water</string>
-    <string name="notification_hydration_body">Stay hydrated 💧</string>
+    <string name="notification_hydration_body">Drink some water now 💧</string>
 
     <!-- Status & Notifications -->
     <string name="status_off">Status: Off</string>

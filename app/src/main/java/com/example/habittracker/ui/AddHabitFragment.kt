@@ -8,6 +8,7 @@ import android.view.View
 import android.view.ViewGroup
 import android.widget.*
 import androidx.fragment.app.Fragment
+import androidx.navigation.fragment.findNavController
 import com.example.habittracker.R
 import com.example.habittracker.data.Habit
 import com.example.habittracker.data.PrefStore
@@ -15,6 +16,7 @@ import com.example.habittracker.notify.HabitReminderScheduler
 import com.google.android.material.appbar.MaterialToolbar
 import com.google.android.material.button.MaterialButtonToggleGroup
 import com.google.android.material.switchmaterial.SwitchMaterial
+import com.google.android.material.bottomnavigation.BottomNavigationView
 import java.util.Calendar
 import java.util.Locale
 import java.util.UUID
@@ -52,12 +54,18 @@ class AddHabitFragment : Fragment() {
         val btnSave = view.findViewById<Button>(R.id.btnSave)
         val btnCancel = view.findViewById<Button>(R.id.btnCancel)
 
-        // 🔹 Remove navigation — just simple toolbar title
+        //  Update toolbar + remove bottom navigation on this screen
         toolbar.title = if (existingHabit == null)
             getString(R.string.add_habit_heading)
         else
             getString(R.string.edit_habit)
+            toolbar.setNavigationOnClickListener {
+            findNavController().navigateUp()
+        }
 
+        requireActivity().findViewById<BottomNavigationView>(R.id.bottomNav)?.let { nav ->
+            nav.visibility = View.GONE
+        }
         var repeat = "Daily"
         var dateStr = tvHabitDate.text.toString()
         var timeStr = tvTime.text.toString()
@@ -147,16 +155,10 @@ class AddHabitFragment : Fragment() {
             ).show()
         }
 
-        // ❌ Cancel — just clear fields instead of navigation
+
+        // ❌ Cancel → go back to previous screen
         btnCancel.setOnClickListener {
-            etTitle.text.clear()
-            swReminder.isChecked = false
-            tgRepeat.clearChecked()
-            layoutDaily.visibility = View.VISIBLE
-            layoutWeekly.visibility = View.GONE
-            layoutMonthly.visibility = View.GONE
-            tvHabitDate.text = getString(R.string.add_habit_date_none)
-            Toast.makeText(requireContext(), "Cancelled", Toast.LENGTH_SHORT).show()
+            findNavController().navigateUp()
         }
 
         // 💾 Save habit locally
@@ -184,13 +186,14 @@ class AddHabitFragment : Fragment() {
             )
 
             val habits = store.getHabits()
+            val messageRes: Int
             if (existingHabit != null) {
                 val index = habits.indexOfFirst { it.id == existingHabit!!.id }
                 if (index != -1) habits[index] = newHabit
-                Toast.makeText(requireContext(), R.string.habit_updated_success, Toast.LENGTH_SHORT).show()
+                messageRes = R.string.habit_updated_success
             } else {
                 habits.add(newHabit)
-                Toast.makeText(requireContext(), R.string.habit_created_success, Toast.LENGTH_SHORT).show()
+                messageRes = R.string.habit_created_success
             }
 
             store.saveHabits(habits)
@@ -201,8 +204,26 @@ class AddHabitFragment : Fragment() {
                 HabitReminderScheduler.cancel(requireContext(), newHabit.id)
             }
 
-            // ✅ No navigation — just feedback
-            Toast.makeText(requireContext(), "Habit saved successfully!", Toast.LENGTH_SHORT).show()
+            val resultBundle = Bundle().apply {
+                putBoolean(HabitsFragment.RESULT_REFRESH, true)
+            }
+            parentFragmentManager.setFragmentResult(
+                HabitsFragment.REQUEST_KEY,
+                resultBundle
+            )
+            parentFragmentManager.setFragmentResult(
+                HomeFragment.REQUEST_KEY,
+                Bundle(resultBundle)
+            )
+            Toast.makeText(requireContext(), getString(messageRes), Toast.LENGTH_SHORT).show()
+            findNavController().navigateUp()
+        }
+    }
+
+    override fun onDestroyView() {
+        super.onDestroyView()
+        requireActivity().findViewById<BottomNavigationView>(R.id.bottomNav)?.let { nav ->
+            nav.visibility = View.VISIBLE
         }
     }
 
